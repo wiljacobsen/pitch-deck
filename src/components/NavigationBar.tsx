@@ -1,11 +1,30 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 
-const SECTIONS = [
-  { id: 'hero', label: 'Introduction' },
-  { id: 'value-chain', label: 'Value Chain' },
-  { id: 'products', label: 'Products' },
-  { id: 'why-we-exist', label: 'Why We Exist' },
+interface NavStep {
+  sectionId: string
+  label: string
+  display: string
+  scrollPct?: number // for sub-steps within a scrollable section
+}
+
+const STEPS: NavStep[] = [
+  { sectionId: 'hero', label: 'Introduction', display: '1' },
+  { sectionId: 'value-chain', label: 'Value Chain', display: '2.0', scrollPct: 0.03 },
+  { sectionId: 'value-chain', label: 'Energy transition', display: '2.1', scrollPct: 0.16 },
+  { sectionId: 'value-chain', label: 'Connecting to grid', display: '2.2', scrollPct: 0.36 },
+  { sectionId: 'value-chain', label: 'Digital growth', display: '2.3', scrollPct: 0.54 },
+  { sectionId: 'value-chain', label: "Symphony's role", display: '2.4', scrollPct: 0.72 },
+  { sectionId: 'products', label: 'Products', display: '3' },
+  { sectionId: 'why-we-exist', label: 'Why We Exist', display: '4' },
+]
+
+// Menu shows only top-level sections
+const MENU_ITEMS = [
+  { label: 'Introduction', stepIndex: 0, display: '1' },
+  { label: 'Value Chain', stepIndex: 1, display: '2' },
+  { label: 'Products', stepIndex: 6, display: '3' },
+  { label: 'Why We Exist', stepIndex: 7, display: '4' },
 ]
 
 interface NavigationBarProps {
@@ -17,33 +36,75 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
   const [current, setCurrent] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // Track current section by scroll position
+  // Track current step by scroll position
   useEffect(() => {
     const handleScroll = () => {
-      const scrollY = window.scrollY + window.innerHeight / 3
-      for (let i = SECTIONS.length - 1; i >= 0; i--) {
-        const el = document.getElementById(SECTIONS[i].id)
-        if (el && el.offsetTop <= scrollY) {
-          setCurrent(i)
-          break
+      const scrollY = window.scrollY
+      const vh = window.innerHeight
+
+      // Check value-chain sub-steps
+      const vcEl = document.getElementById('value-chain')
+      if (vcEl) {
+        const vcTop = vcEl.offsetTop
+        const vcHeight = vcEl.scrollHeight
+        const vcScrollRange = vcHeight - vh
+
+        if (scrollY >= vcTop && scrollY < vcTop + vcHeight - vh * 0.5) {
+          const pct = (scrollY - vcTop) / vcScrollRange
+          // Find the matching sub-step
+          const vcSteps = STEPS.filter((s) => s.sectionId === 'value-chain')
+          let bestIdx = 1 // default to 2.0
+          for (let i = vcSteps.length - 1; i >= 0; i--) {
+            if (pct >= (vcSteps[i].scrollPct! - 0.04)) {
+              bestIdx = STEPS.indexOf(vcSteps[i])
+              break
+            }
+          }
+          setCurrent(bestIdx)
+          return
         }
       }
+
+      // Check other sections
+      const scrollCheck = scrollY + vh / 3
+      // Check from bottom up
+      for (let i = STEPS.length - 1; i >= 0; i--) {
+        const step = STEPS[i]
+        if (step.scrollPct !== undefined) continue // skip sub-steps, handled above
+        const el = document.getElementById(step.sectionId)
+        if (el && el.offsetTop <= scrollCheck) {
+          setCurrent(i)
+          return
+        }
+      }
+      setCurrent(0)
     }
+
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const scrollTo = useCallback((index: number) => {
-    const el = document.getElementById(SECTIONS[index].id)
-    if (el) el.scrollIntoView({ behavior: 'smooth' })
+  const scrollTo = useCallback((stepIndex: number) => {
+    const step = STEPS[stepIndex]
+    const el = document.getElementById(step.sectionId)
+    if (!el) return
+
+    if (step.scrollPct !== undefined) {
+      const sectionHeight = el.scrollHeight
+      const scrollRange = sectionHeight - window.innerHeight
+      const targetScroll = el.offsetTop + scrollRange * step.scrollPct
+      window.scrollTo({ top: targetScroll, behavior: 'smooth' })
+    } else {
+      el.scrollIntoView({ behavior: 'smooth' })
+    }
     setMenuOpen(false)
   }, [])
 
   const prev = () => { if (current > 0) scrollTo(current - 1) }
-  const next = () => { if (current < SECTIONS.length - 1) scrollTo(current + 1) }
+  const next = () => { if (current < STEPS.length - 1) scrollTo(current + 1) }
 
-  // Close menu on scroll or click outside
+  // Close menu on scroll
   useEffect(() => {
     if (!menuOpen) return
     const close = () => setMenuOpen(false)
@@ -56,6 +117,9 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
   const divider = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
   const textMuted = dark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.25)'
   const text = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)'
+
+  // Which top-level menu item is active
+  const activeMenuIndex = MENU_ITEMS.findLastIndex((m) => m.stepIndex <= current)
 
   return (
     <div className="fixed top-6 right-6 z-50 flex items-center gap-2">
@@ -70,46 +134,39 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
           disabled={current === 0}
           className="w-10 h-10 flex items-center justify-center transition-opacity duration-200"
           style={{ opacity: current === 0 ? 0.3 : 1, color: text }}
-          aria-label="Previous section"
+          aria-label="Previous"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M8.5 3L4.5 7L8.5 11" />
           </svg>
         </button>
 
-        {/* Divider */}
         <div className="w-px h-5" style={{ background: divider }} />
 
-        {/* Menu toggle */}
+        {/* Menu toggle with step indicator */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="relative h-10 px-3 flex items-center gap-2 transition-colors duration-200"
+          className="relative h-10 px-3 flex items-center gap-1.5 transition-colors duration-200"
           style={{ color: text }}
           aria-label="Table of contents"
         >
-          <span className="text-xs font-medium tabular-nums" style={{ color: textMuted }}>
-            {current + 1}/{SECTIONS.length}
+          <span className="text-xs font-semibold tabular-nums min-w-[24px] text-center" style={{ color: textMuted }}>
+            {STEPS[current].display}
           </span>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <motion.path
-              d="M2.5 4L6 7.5L9.5 4"
-              animate={{ rotate: menuOpen ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-              style={{ transformOrigin: 'center' }}
-            />
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <path d={menuOpen ? "M2 6.5L5 3.5L8 6.5" : "M2 3.5L5 6.5L8 3.5"} />
           </svg>
         </button>
 
-        {/* Divider */}
         <div className="w-px h-5" style={{ background: divider }} />
 
         {/* Next */}
         <button
           onClick={next}
-          disabled={current === SECTIONS.length - 1}
+          disabled={current === STEPS.length - 1}
           className="w-10 h-10 flex items-center justify-center transition-opacity duration-200"
-          style={{ opacity: current === SECTIONS.length - 1 ? 0.3 : 1, color: text }}
-          aria-label="Next section"
+          style={{ opacity: current === STEPS.length - 1 ? 0.3 : 1, color: text }}
+          aria-label="Next"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5.5 3L9.5 7L5.5 11" />
@@ -122,7 +179,7 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
         onClick={onToggleTheme}
         className="w-10 h-10 rounded-full border backdrop-blur-md flex items-center justify-center transition-colors duration-300"
         style={{ background: bg, borderColor: border, color: text }}
-        aria-label="Toggle dark/light mode"
+        aria-label="Toggle theme"
       >
         <motion.div
           initial={false}
@@ -149,11 +206,10 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
         </motion.div>
       </button>
 
-      {/* Dropdown menu */}
+      {/* Dropdown menu — shows top-level sections only */}
       <AnimatePresence>
         {menuOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               className="fixed inset-0 z-[-1]"
               initial={{ opacity: 0 }}
@@ -176,34 +232,34 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
               transition={{ duration: 0.15, ease: 'easeOut' }}
             >
               <div className="py-1.5">
-                {SECTIONS.map((section, i) => (
+                {MENU_ITEMS.map((item, i) => (
                   <button
-                    key={section.id}
-                    onClick={() => scrollTo(i)}
+                    key={item.label}
+                    onClick={() => scrollTo(item.stepIndex)}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-150"
                     style={{
-                      color: i === current ? '#3B82F6' : text,
-                      background: i === current
+                      color: i === activeMenuIndex ? '#3B82F6' : text,
+                      background: i === activeMenuIndex
                         ? (dark ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.06)')
                         : 'transparent',
                     }}
                     onMouseEnter={(e) => {
-                      if (i !== current) e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'
+                      if (i !== activeMenuIndex) e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'
                     }}
                     onMouseLeave={(e) => {
-                      if (i !== current) e.currentTarget.style.background = 'transparent'
+                      if (i !== activeMenuIndex) e.currentTarget.style.background = 'transparent'
                     }}
                   >
                     <span
                       className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold flex-shrink-0"
                       style={{
-                        background: i === current ? '#3B82F6' : (dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
-                        color: i === current ? '#fff' : textMuted,
+                        background: i === activeMenuIndex ? '#3B82F6' : (dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
+                        color: i === activeMenuIndex ? '#fff' : textMuted,
                       }}
                     >
-                      {i + 1}
+                      {item.display}
                     </span>
-                    <span className="text-sm font-medium">{section.label}</span>
+                    <span className="text-sm font-medium">{item.label}</span>
                   </button>
                 ))}
               </div>
