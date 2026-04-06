@@ -8,14 +8,14 @@ export default function Hero() {
       <AnimatedGrid />
 
       <div className="relative z-10 text-center px-6">
-        <motion.h1
-          className="text-6xl md:text-8xl font-bold tracking-tight mb-6"
+        <motion.img
+          src="/Symphony_Logo_White.png"
+          alt="Symphony"
+          className="h-16 md:h-24 mx-auto mb-6"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
-        >
-          Symphony
-        </motion.h1>
+        />
 
         <motion.p
           className="text-lg md:text-2xl text-white/60 font-light tracking-wide"
