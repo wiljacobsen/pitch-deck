@@ -1,5 +1,5 @@
 import { motion, type MotionValue, useTransform } from 'motion/react'
-import { SolarPanel, WindTurbine, Battery, GasGenerator, Transformer, PowerTower, Buildings } from '../../icons'
+import { CoalPlant, SolarPanel, WindTurbine, Battery, Transformer, PowerTower, Buildings } from '../../icons'
 import { useValueChainAnimation, type NodeId } from './useValueChainAnimation'
 
 interface ChainNodeProps {
@@ -17,8 +17,8 @@ function ChainNode({ icon, label, x, y, opacity = 1, scale = 1, highlightProgres
   const left = useTransform(x, (v) => `${v}%`)
   const top = useTransform(y, (v) => `${v}%`)
 
-  // Interpolate colors based on highlight progress
   const borderColor = highlightProgress
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     ? useTransform(highlightProgress, [0, 1], [
         dark ? 'rgba(255,255,255,0.2)' : 'rgba(209,213,219,1)',
         'rgba(59,130,246,0.5)',
@@ -26,20 +26,23 @@ function ChainNode({ icon, label, x, y, opacity = 1, scale = 1, highlightProgres
     : undefined
 
   const bgColor = highlightProgress
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     ? useTransform(highlightProgress, [0, 1], [
         dark ? '#152035' : '#ffffff',
         dark ? '#1a2d52' : '#eff6ff',
       ])
     : undefined
 
-  const iconColor = highlightProgress
+  const iconColorVal = highlightProgress
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     ? useTransform(highlightProgress, [0, 1], [
         dark ? 'rgba(255,255,255,0.85)' : 'rgba(55,65,81,1)',
         'rgba(59,130,246,1)',
       ])
     : undefined
 
-  const labelColor = highlightProgress
+  const labelColorVal = highlightProgress
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     ? useTransform(highlightProgress, [0, 1], [
         dark ? 'rgba(255,255,255,0.8)' : 'rgba(75,85,99,1)',
         dark ? 'rgba(96,165,250,1)' : 'rgba(59,130,246,1)',
@@ -52,23 +55,23 @@ function ChainNode({ icon, label, x, y, opacity = 1, scale = 1, highlightProgres
       style={{ left, top, opacity, scale }}
     >
       <motion.div
-        className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center border transition-shadow duration-500"
+        className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center border"
         style={{
           borderColor: borderColor || (dark ? 'rgba(255,255,255,0.2)' : 'rgba(209,213,219,1)'),
           backgroundColor: bgColor || (dark ? '#152035' : '#ffffff'),
-          boxShadow: highlightProgress ? undefined : (dark ? 'none' : '0 1px 2px rgba(0,0,0,0.05)'),
+          boxShadow: dark ? 'none' : '0 1px 2px rgba(0,0,0,0.05)',
         }}
       >
         <motion.div
           className="w-10 h-10 md:w-12 md:h-12"
-          style={{ color: iconColor || (dark ? 'rgba(255,255,255,0.85)' : 'rgba(55,65,81,1)') }}
+          style={{ color: iconColorVal || (dark ? 'rgba(255,255,255,0.85)' : 'rgba(55,65,81,1)') }}
         >
           {icon}
         </motion.div>
       </motion.div>
       <motion.span
         className="text-[10px] md:text-xs text-center font-medium whitespace-nowrap"
-        style={{ color: labelColor || (dark ? 'rgba(255,255,255,0.8)' : 'rgba(75,85,99,1)') }}
+        style={{ color: labelColorVal || (dark ? 'rgba(255,255,255,0.8)' : 'rgba(75,85,99,1)') }}
       >
         {label}
       </motion.span>
@@ -91,7 +94,6 @@ function ChainArrow({ x1, y1, x2, y2, opacity = 1, id, dark }: ArrowProps) {
   const cy1 = useTransform(y1, (v) => `${v}%`)
   const cx2 = useTransform(x2, (v) => `${v}%`)
   const cy2 = useTransform(y2, (v) => `${v}%`)
-
   const lineColor = dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)'
   const arrowColor = dark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.25)'
 
@@ -103,28 +105,13 @@ function ChainArrow({ x1, y1, x2, y2, opacity = 1, id, dark }: ArrowProps) {
             <path d="M 0 1.5 L 9 5 L 0 8.5" fill="none" stroke={arrowColor} strokeWidth="1.5" />
           </marker>
         </defs>
-        <motion.line
-          x1={cx1} y1={cy1} x2={cx2} y2={cy2}
-          stroke={lineColor}
-          strokeWidth="1"
-          markerEnd={`url(#ar-${id})`}
-        />
+        <motion.line x1={cx1} y1={cy1} x2={cx2} y2={cy2} stroke={lineColor} strokeWidth="1" markerEnd={`url(#ar-${id})`} />
       </svg>
     </motion.div>
   )
 }
 
-interface ElectronPathProps {
-  x1: MotionValue<number>
-  y1: MotionValue<number>
-  x2: MotionValue<number>
-  y2: MotionValue<number>
-  opacity?: MotionValue<number> | number
-  delay: number
-  id: string
-}
-
-function ElectronPath({ x1, y1, x2, y2, opacity = 1, delay, id: _id }: ElectronPathProps) {
+function ElectronPath({ x1, y1, x2, y2, opacity = 1, delay }: { x1: MotionValue<number>; y1: MotionValue<number>; x2: MotionValue<number>; y2: MotionValue<number>; opacity?: MotionValue<number> | number; delay: number }) {
   const sx = useTransform(x1, (v) => `${v}%`)
   const sy = useTransform(y1, (v) => `${v}%`)
   const ex = useTransform(x2, (v) => `${v}%`)
@@ -134,13 +121,7 @@ function ElectronPath({ x1, y1, x2, y2, opacity = 1, delay, id: _id }: ElectronP
     <motion.div className="absolute inset-0 pointer-events-none" style={{ opacity }}>
       <svg className="w-full h-full absolute inset-0" overflow="visible">
         <defs>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-            <feMerge>
-              <feMergeNode in="coloredBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
+          <filter id="glow"><feGaussianBlur stdDeviation="2" result="c" /><feMerge><feMergeNode in="c" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
         </defs>
         {[0, 1, 2].map((i) => (
           <circle key={i} r="2.5" fill="#3B82F6" filter="url(#glow)">
@@ -154,187 +135,115 @@ function ElectronPath({ x1, y1, x2, y2, opacity = 1, delay, id: _id }: ElectronP
   )
 }
 
-interface ValueChainCanvasProps {
-  scrollYProgress: MotionValue<number>
-  dark: boolean
-}
-
-export default function ValueChainCanvas({ scrollYProgress, dark }: ValueChainCanvasProps) {
+export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYProgress: MotionValue<number>; dark: boolean }) {
   const anim = useValueChainAnimation(scrollYProgress)
   const p = anim.positions
-
   const iconSize = "w-10 h-10 md:w-12 md:h-12"
-
-  // Node definitions
-  const nodes: {
-    id: NodeId
-    icon: React.ReactNode
-    label: string
-    opacity?: MotionValue<number> | number
-    scale?: MotionValue<number> | number
-    highlightProgress?: MotionValue<number>
-  }[] = [
-    // Generators (solar always visible, others expand)
-    { id: 'solar', icon: <SolarPanel className={iconSize} />, label: 'Solar' },
-    { id: 'wind', icon: <WindTurbine className={iconSize} />, label: 'Wind', opacity: anim.generatorExpand },
-    { id: 'battery', icon: <Battery className={iconSize} />, label: 'Battery', opacity: anim.generatorExpand },
-    { id: 'gas', icon: <GasGenerator className={iconSize} />, label: 'Gas', opacity: anim.generatorExpand },
-    // NCI boxes (appear in State B, highlight in State C)
-    { id: 'nciSolar', icon: <Transformer className={iconSize} />, label: 'Connection Infra', opacity: anim.nciOpacity, scale: anim.nciScale, highlightProgress: anim.nciHighlight },
-    { id: 'nciWind', icon: <Transformer className={iconSize} />, label: 'Connection Infra', opacity: anim.nciOpacity, scale: anim.nciScale, highlightProgress: anim.nciHighlight },
-    { id: 'nciBattery', icon: <Transformer className={iconSize} />, label: 'Connection Infra', opacity: anim.nciOpacity, scale: anim.nciScale, highlightProgress: anim.nciHighlight },
-    { id: 'nciGas', icon: <Transformer className={iconSize} />, label: 'Connection Infra', opacity: anim.nciOpacity, scale: anim.nciScale, highlightProgress: anim.nciHighlight },
-    // Core chain
-    { id: 'transmission', icon: <PowerTower className={iconSize} />, label: 'Transmission' },
-    { id: 'distribution', icon: <Transformer className={iconSize} />, label: 'Distribution' },
-    { id: 'load', icon: <Buildings className={iconSize} />, label: 'Load / Consumers' },
-  ]
-
-  // State A arrows (simple linear, fade out during expansion)
-  const stateAArrows: { from: NodeId; to: NodeId }[] = [
-    { from: 'solar', to: 'transmission' },
-    { from: 'transmission', to: 'distribution' },
-    { from: 'distribution', to: 'load' },
-  ]
-
-  // State B arrows (generator → NCI → transmission, fade in)
-  const stateBArrows: { from: NodeId; to: NodeId }[] = [
-    { from: 'solar', to: 'nciSolar' },
-    { from: 'wind', to: 'nciWind' },
-    { from: 'battery', to: 'nciBattery' },
-    { from: 'gas', to: 'nciGas' },
-    { from: 'nciSolar', to: 'transmission' },
-    { from: 'nciWind', to: 'transmission' },
-    { from: 'nciBattery', to: 'transmission' },
-    { from: 'nciGas', to: 'transmission' },
-    { from: 'transmission', to: 'distribution' },
-    { from: 'distribution', to: 'load' },
-  ]
-
-  // Electron paths for State B
-  const electronPaths: { from: NodeId; to: NodeId; opacity?: MotionValue<number> | number; delay: number }[] = [
-    // State A electrons
-    { from: 'solar', to: 'transmission', opacity: anim.stateAFade, delay: 0 },
-    { from: 'transmission', to: 'distribution', opacity: anim.stateAFade, delay: 0.5 },
-    { from: 'distribution', to: 'load', delay: 1 },
-    // State B electrons
-    { from: 'solar', to: 'nciSolar', opacity: anim.stateBArrows, delay: 0 },
-    { from: 'wind', to: 'nciWind', opacity: anim.stateBArrows, delay: 0.3 },
-    { from: 'battery', to: 'nciBattery', opacity: anim.stateBArrows, delay: 0.6 },
-    { from: 'gas', to: 'nciGas', opacity: anim.stateBArrows, delay: 0.9 },
-    { from: 'nciSolar', to: 'transmission', opacity: anim.stateBArrows, delay: 0.2 },
-    { from: 'nciWind', to: 'transmission', opacity: anim.stateBArrows, delay: 0.5 },
-    { from: 'nciBattery', to: 'transmission', opacity: anim.stateBArrows, delay: 0.8 },
-    { from: 'nciGas', to: 'transmission', opacity: anim.stateBArrows, delay: 1.1 },
-  ]
 
   return (
     <div className="relative w-full h-full">
-      {/* Title area */}
+      {/* ===== TITLE A: Traditional value chain ===== */}
       <motion.div
-        className="absolute top-[5%] left-1/2 -translate-x-1/2 text-center z-10 w-full max-w-4xl px-6"
-        style={{ opacity: anim.titleOpacity }}
+        className="absolute top-[4%] left-1/2 -translate-x-1/2 text-center z-10 w-full max-w-4xl px-6"
+        style={{ opacity: anim.titleAOpacity }}
       >
-        <h2 className={`text-2xl md:text-4xl font-bold mb-3 transition-colors duration-500 ${dark ? 'text-white' : 'text-gray-900'}`}>
+        <h2 className={`text-2xl md:text-4xl font-bold mb-4 ${dark ? 'text-white' : 'text-gray-900'}`}>
           Traditional electricity value chain
         </h2>
-        {/* State A subtitle */}
-        <motion.p
-          className={`text-sm md:text-base max-w-3xl mx-auto transition-colors duration-500 ${dark ? 'text-white/40' : 'text-gray-400'}`}
-          style={{ opacity: anim.subtitleAOpacity }}
-        >
-          Historically, power has flowed from large scale centralised generators through transmission and distribution networks to commercial, industrial and residential load customers
-        </motion.p>
-        {/* State B/C subtitle */}
-        <motion.p
-          className={`text-sm md:text-base max-w-3xl mx-auto absolute top-full left-1/2 -translate-x-1/2 mt-1 w-full transition-colors duration-500 ${dark ? 'text-white/40' : 'text-gray-400'}`}
-          style={{ opacity: anim.subtitleBOpacity }}
-        >
-          The energy transition requires new connection infrastructure between generators and the transmission network
-        </motion.p>
+        <p className={`text-base md:text-lg max-w-3xl mx-auto leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
+          Historically, power has flowed from large-scale centralised generators through transmission and distribution networks to commercial, industrial and residential load customers
+        </p>
       </motion.div>
 
-      {/* State C annotation — "Symphony" label */}
+      {/* ===== TITLE B: Energy transition ===== */}
       <motion.div
-        className="absolute top-[18%] right-[5%] z-10"
-        style={{ opacity: anim.stateCAnnotation }}
+        className="absolute top-[4%] left-1/2 -translate-x-1/2 text-center z-10 w-full max-w-4xl px-6"
+        style={{ opacity: anim.titleBOpacity }}
       >
-        <div className="bg-accent/20 border border-accent/40 rounded-xl px-4 py-2 text-center">
-          <span className="text-accent-light text-xs md:text-sm font-semibold">Symphony</span>
-          <p className={`text-[10px] md:text-xs mt-0.5 ${dark ? 'text-white/40' : 'text-gray-400'}`}>Connection Infrastructure</p>
-        </div>
+        <h2 className={`text-2xl md:text-4xl font-bold mb-4 ${dark ? 'text-white' : 'text-gray-900'}`}>
+          The energy transition
+        </h2>
+        <p className={`text-base md:text-lg max-w-3xl mx-auto leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
+          Australia's ageing coal fleet is being replaced by distributed renewable energy sources — wind farms, solar farms and battery storage — fundamentally changing the shape of the grid
+        </p>
       </motion.div>
 
-      {/* "Generation" label for State A (over the single solar node) */}
+      {/* ===== TITLE C: Need for connection ===== */}
       <motion.div
-        className="absolute z-10 -translate-x-1/2"
-        style={{
-          left: useTransform(p.solar.x, (v) => `${v}%`),
-          top: useTransform(p.solar.y, (v) => `${v - 12}%`),
-          opacity: anim.stateAFade,
-        }}
+        className="absolute top-[4%] left-1/2 -translate-x-1/2 text-center z-10 w-full max-w-4xl px-6"
+        style={{ opacity: anim.titleCOpacity }}
       >
-        <span className={`text-xs md:text-sm font-semibold ${dark ? 'text-white/60' : 'text-gray-500'}`}>
-          Generation
-        </span>
+        <h2 className={`text-2xl md:text-4xl font-bold mb-4 ${dark ? 'text-white' : 'text-gray-900'}`}>
+          Connecting to the grid
+        </h2>
+        <p className={`text-base md:text-lg max-w-3xl mx-auto leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
+          Every new generator needs dedicated connection infrastructure to link into the transmission network — substations, switchyards and high-voltage equipment that the network operator does not provide
+        </p>
       </motion.div>
 
-      {/* Arrow lines — State A */}
-      {stateAArrows.map((arrow, i) => (
-        <ChainArrow
-          key={`sa-${i}`}
-          id={`sa${i}`}
-          x1={p[arrow.from].x}
-          y1={p[arrow.from].y}
-          x2={p[arrow.to].x}
-          y2={p[arrow.to].y}
-          opacity={anim.stateAFade}
-          dark={dark}
-        />
-      ))}
+      {/* ===== TITLE D: Symphony's role ===== */}
+      <motion.div
+        className="absolute top-[4%] left-1/2 -translate-x-1/2 text-center z-10 w-full max-w-4xl px-6"
+        style={{ opacity: anim.titleDOpacity }}
+      >
+        <h2 className={`text-2xl md:text-4xl font-bold mb-4 ${dark ? 'text-white' : 'text-gray-900'}`}>
+          That's where <span className="text-accent">Symphony</span> comes in
+        </h2>
+        <p className={`text-base md:text-lg max-w-3xl mx-auto leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
+          Symphony designs, builds and owns the connection infrastructure that links generators to the grid — providing certainty of delivery for our partners
+        </p>
+      </motion.div>
 
-      {/* Arrow lines — State B */}
-      {stateBArrows.map((arrow, i) => (
-        <ChainArrow
-          key={`sb-${i}`}
-          id={`sb${i}`}
-          x1={p[arrow.from].x}
-          y1={p[arrow.from].y}
-          x2={p[arrow.to].x}
-          y2={p[arrow.to].y}
-          opacity={anim.stateBArrows}
-          dark={dark}
-        />
-      ))}
+      {/* ===== State A arrows: Coal → Transmission → Distribution → Load ===== */}
+      <ChainArrow id="a0" x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.stateAFade} dark={dark} />
+      <ChainArrow id="a1" x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.stateAFade} dark={dark} />
+      <ChainArrow id="a2" x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.stateAFade} dark={dark} />
 
-      {/* Electron particles */}
-      {electronPaths.map((ep, i) => (
-        <ElectronPath
-          key={`e-${i}`}
-          id={`e${i}`}
-          x1={p[ep.from].x}
-          y1={p[ep.from].y}
-          x2={p[ep.to].x}
-          y2={p[ep.to].y}
-          opacity={ep.opacity}
-          delay={ep.delay}
-        />
-      ))}
+      {/* State A electrons */}
+      <ElectronPath x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.stateAFade} delay={0} />
+      <ElectronPath x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.stateAFade} delay={0.5} />
+      <ElectronPath x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.stateAFade} delay={1} />
 
-      {/* Nodes */}
-      {nodes.map((node) => (
-        <ChainNode
-          key={node.id}
-          icon={node.icon}
-          label={node.label}
-          x={p[node.id].x}
-          y={p[node.id].y}
-          opacity={node.opacity}
-          scale={node.scale}
-          highlightProgress={node.highlightProgress}
-          dark={dark}
-        />
-      ))}
+      {/* ===== Core chain arrows (transmission → distribution → load) persist from State B ===== */}
+      <ChainArrow id="c0" x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.coreChainArrows} dark={dark} />
+      <ChainArrow id="c1" x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.coreChainArrows} dark={dark} />
+
+      {/* ===== Connection arrows: generators → NCI → transmission (appear in State C) ===== */}
+      {(['solar', 'wind', 'battery'] as const).map((gen, i) => {
+        const nci = `nci${gen.charAt(0).toUpperCase() + gen.slice(1)}` as NodeId
+        return (
+          <span key={gen}>
+            <ChainArrow id={`g${i}`} x1={p[gen].x} y1={p[gen].y} x2={p[nci].x} y2={p[nci].y} opacity={anim.connectionArrows} dark={dark} />
+            <ChainArrow id={`n${i}`} x1={p[nci].x} y1={p[nci].y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.connectionArrows} dark={dark} />
+            <ElectronPath x1={p[gen].x} y1={p[gen].y} x2={p[nci].x} y2={p[nci].y} opacity={anim.connectionArrows} delay={i * 0.4} />
+            <ElectronPath x1={p[nci].x} y1={p[nci].y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.connectionArrows} delay={i * 0.4 + 0.2} />
+          </span>
+        )
+      })}
+
+      {/* Core chain electrons */}
+      <ElectronPath x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.coreChainArrows} delay={0.3} />
+      <ElectronPath x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.coreChainArrows} delay={0.8} />
+
+      {/* ===== NODES ===== */}
+
+      {/* Coal generator — State A only */}
+      <ChainNode icon={<CoalPlant className={iconSize} />} label="Coal Generation" x={p.coal.x} y={p.coal.y} opacity={anim.coalOpacity} dark={dark} />
+
+      {/* Renewable generators — appear in State B */}
+      <ChainNode icon={<SolarPanel className={iconSize} />} label="Solar" x={p.solar.x} y={p.solar.y} opacity={anim.renewablesOpacity} dark={dark} />
+      <ChainNode icon={<WindTurbine className={iconSize} />} label="Wind" x={p.wind.x} y={p.wind.y} opacity={anim.renewablesOpacity} dark={dark} />
+      <ChainNode icon={<Battery className={iconSize} />} label="Battery" x={p.battery.x} y={p.battery.y} opacity={anim.renewablesOpacity} dark={dark} />
+
+      {/* NCI boxes — appear in State C, highlight in State D */}
+      <ChainNode icon={<Transformer className={iconSize} />} label="Connection Infra" x={p.nciSolar.x} y={p.nciSolar.y} opacity={anim.nciOpacity} scale={anim.nciScale} highlightProgress={anim.nciHighlight} dark={dark} />
+      <ChainNode icon={<Transformer className={iconSize} />} label="Connection Infra" x={p.nciWind.x} y={p.nciWind.y} opacity={anim.nciOpacity} scale={anim.nciScale} highlightProgress={anim.nciHighlight} dark={dark} />
+      <ChainNode icon={<Transformer className={iconSize} />} label="Connection Infra" x={p.nciBattery.x} y={p.nciBattery.y} opacity={anim.nciOpacity} scale={anim.nciScale} highlightProgress={anim.nciHighlight} dark={dark} />
+
+      {/* Core chain nodes — always visible */}
+      <ChainNode icon={<PowerTower className={iconSize} />} label="Transmission" x={p.transmission.x} y={p.transmission.y} dark={dark} />
+      <ChainNode icon={<Transformer className={iconSize} />} label="Distribution" x={p.distribution.x} y={p.distribution.y} dark={dark} />
+      <ChainNode icon={<Buildings className={iconSize} />} label="Load / Consumers" x={p.load.x} y={p.load.y} dark={dark} />
     </div>
   )
 }

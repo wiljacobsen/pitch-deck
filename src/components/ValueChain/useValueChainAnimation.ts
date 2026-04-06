@@ -1,14 +1,13 @@
 import { useTransform, type MotionValue } from 'motion/react'
 
 export type NodeId =
+  | 'coal'       // State A generation (replaced later)
   | 'solar'
   | 'wind'
   | 'battery'
-  | 'gas'
   | 'nciSolar'
   | 'nciWind'
   | 'nciBattery'
-  | 'nciGas'
   | 'transmission'
   | 'distribution'
   | 'load'
@@ -18,103 +17,107 @@ interface NodePosition {
   y: number
 }
 
-// State A: simple linear chain (only solar/transmission/distribution/load visible)
-// wind/battery/gas stacked behind solar, NCI nodes hidden
+// State A: Coal → Transmission → Distribution → Load (simple linear)
 const STATE_A: Record<NodeId, NodePosition> = {
-  solar:        { x: 10, y: 45 },
-  wind:         { x: 10, y: 45 },
-  battery:      { x: 10, y: 45 },
-  gas:          { x: 10, y: 45 },
-  nciSolar:     { x: 10, y: 45 },
-  nciWind:      { x: 10, y: 45 },
-  nciBattery:   { x: 10, y: 45 },
-  nciGas:       { x: 10, y: 45 },
-  transmission: { x: 37, y: 45 },
-  distribution: { x: 63, y: 45 },
-  load:         { x: 90, y: 45 },
+  coal:         { x: 10, y: 50 },
+  solar:        { x: 10, y: 50 },
+  wind:         { x: 10, y: 50 },
+  battery:      { x: 10, y: 50 },
+  nciSolar:     { x: 10, y: 50 },
+  nciWind:      { x: 10, y: 50 },
+  nciBattery:   { x: 10, y: 50 },
+  transmission: { x: 37, y: 50 },
+  distribution: { x: 63, y: 50 },
+  load:         { x: 90, y: 50 },
 }
 
-// State B: generators expand into left column, each with NCI box
+// State B: Coal fades, renewables appear in column (not connected yet)
+// State C: NCI boxes appear and everything connects
 const STATE_B: Record<NodeId, NodePosition> = {
-  solar:        { x: 8,  y: 20 },
-  wind:         { x: 8,  y: 38 },
-  battery:      { x: 8,  y: 56 },
-  gas:          { x: 8,  y: 74 },
-  nciSolar:     { x: 24, y: 20 },
-  nciWind:      { x: 24, y: 38 },
-  nciBattery:   { x: 24, y: 56 },
-  nciGas:       { x: 24, y: 74 },
-  transmission: { x: 45, y: 45 },
-  distribution: { x: 68, y: 45 },
-  load:         { x: 90, y: 45 },
+  coal:         { x: 8,  y: 25 }, // fades out
+  solar:        { x: 8,  y: 25 },
+  wind:         { x: 8,  y: 47 },
+  battery:      { x: 8,  y: 69 },
+  nciSolar:     { x: 24, y: 25 },
+  nciWind:      { x: 24, y: 47 },
+  nciBattery:   { x: 24, y: 69 },
+  transmission: { x: 45, y: 47 },
+  distribution: { x: 68, y: 47 },
+  load:         { x: 90, y: 47 },
 }
 
 const ALL_NODES: NodeId[] = [
-  'solar', 'wind', 'battery', 'gas',
-  'nciSolar', 'nciWind', 'nciBattery', 'nciGas',
+  'coal', 'solar', 'wind', 'battery',
+  'nciSolar', 'nciWind', 'nciBattery',
   'transmission', 'distribution', 'load',
 ]
-
-const NCI_NODES: NodeId[] = ['nciSolar', 'nciWind', 'nciBattery', 'nciGas']
 
 export type NodePositions = Record<NodeId, { x: MotionValue<number>; y: MotionValue<number> }>
 
 export function useValueChainAnimation(scrollYProgress: MotionValue<number>) {
-  // Timeline:
-  // 0.0–0.15: State A visible (simple 4-node chain)
-  // 0.15–0.45: Morph A → B (generators expand, NCI boxes appear)
-  // 0.45–0.6: State B holds
-  // 0.6–0.8: State C (NCI boxes highlight to accent color)
-  // 0.8–1.0: State C holds
+  // Timeline (500vh section):
+  // 0.00–0.12: State A — Traditional chain with coal generator
+  // 0.12–0.20: Title A fades, Title B fades in
+  // 0.20–0.38: Coal fades out, renewables (solar/wind/battery) appear in column, spread out
+  // 0.38–0.45: Pause — renewables visible but NOT connected
+  // 0.45–0.55: Title C fades in — "they need grid connection"
+  // 0.50–0.65: NCI boxes appear, arrows connect generators → NCI → transmission
+  // 0.65–0.75: Pause — everything connected, neutral colors
+  // 0.75–0.88: NCI boxes highlight to accent color (Symphony)
+  // 0.88–1.00: Hold final state
 
-  // All node positions interpolated A → B
+  // Node positions interpolated A → B
   const positions = {} as NodePositions
   for (const id of ALL_NODES) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     positions[id] = {
-      x: useTransform(scrollYProgress, [0.15, 0.45], [STATE_A[id].x, STATE_B[id].x]),
-      y: useTransform(scrollYProgress, [0.15, 0.45], [STATE_A[id].y, STATE_B[id].y]),
+      x: useTransform(scrollYProgress, [0.18, 0.38], [STATE_A[id].x, STATE_B[id].x]),
+      y: useTransform(scrollYProgress, [0.18, 0.38], [STATE_A[id].y, STATE_B[id].y]),
     }
   }
 
-  // Generator expansion: wind/battery/gas fade in
-  const generatorExpand = useTransform(scrollYProgress, [0.18, 0.4], [0, 1])
+  // === Title/subtitle transitions ===
+  const titleAOpacity = useTransform(scrollYProgress, [0, 0.06, 0.14, 0.20], [0, 1, 1, 0])
+  const titleBOpacity = useTransform(scrollYProgress, [0.18, 0.26, 0.42, 0.48], [0, 1, 1, 0])
+  const titleCOpacity = useTransform(scrollYProgress, [0.45, 0.52, 0.72, 0.78], [0, 1, 1, 0])
+  const titleDOpacity = useTransform(scrollYProgress, [0.76, 0.84], [0, 1])
 
-  // NCI nodes fade/scale in
-  const nciOpacity = useTransform(scrollYProgress, [0.25, 0.45], [0, 1])
-  const nciScale = useTransform(scrollYProgress, [0.25, 0.45], [0.7, 1])
+  // === Node visibility ===
+  // Coal visible in State A, fades out during transition
+  const coalOpacity = useTransform(scrollYProgress, [0.18, 0.28], [1, 0])
 
-  // NCI highlight transition (neutral → accent color) for State C
-  const nciHighlight = useTransform(scrollYProgress, [0.6, 0.78], [0, 1])
+  // Renewables fade in during expansion
+  const renewablesOpacity = useTransform(scrollYProgress, [0.22, 0.35], [0, 1])
 
-  // State A direct arrows fade out
-  const stateAFade = useTransform(scrollYProgress, [0.15, 0.3], [1, 0])
+  // State A direct arrows
+  const stateAFade = useTransform(scrollYProgress, [0.15, 0.25], [1, 0])
 
-  // State B arrows (generator → NCI → transmission) fade in
-  const stateBArrows = useTransform(scrollYProgress, [0.25, 0.45], [0, 1])
+  // NCI boxes appear later (after renewables are shown disconnected)
+  const nciOpacity = useTransform(scrollYProgress, [0.50, 0.62], [0, 1])
+  const nciScale = useTransform(scrollYProgress, [0.50, 0.62], [0.7, 1])
 
-  // Title
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.08], [0, 1])
+  // Arrows from generators → NCI → transmission
+  const connectionArrows = useTransform(scrollYProgress, [0.55, 0.65], [0, 1])
 
-  // Subtitle text transition (State A text fades, State B text appears)
-  const subtitleAOpacity = useTransform(scrollYProgress, [0.12, 0.22], [1, 0])
-  const subtitleBOpacity = useTransform(scrollYProgress, [0.35, 0.48], [0, 1])
+  // Transmission → distribution → load arrows (persist from State B onward)
+  const coreChainArrows = useTransform(scrollYProgress, [0.30, 0.40], [0, 1])
 
-  // State C annotation
-  const stateCAnnotation = useTransform(scrollYProgress, [0.65, 0.8], [0, 1])
+  // NCI highlight (neutral → accent blue) = Symphony reveal
+  const nciHighlight = useTransform(scrollYProgress, [0.76, 0.88], [0, 1])
 
   return {
     positions,
-    generatorExpand,
+    titleAOpacity,
+    titleBOpacity,
+    titleCOpacity,
+    titleDOpacity,
+    coalOpacity,
+    renewablesOpacity,
+    stateAFade,
     nciOpacity,
     nciScale,
+    connectionArrows,
+    coreChainArrows,
     nciHighlight,
-    stateAFade,
-    stateBArrows,
-    titleOpacity,
-    subtitleAOpacity,
-    subtitleBOpacity,
-    stateCAnnotation,
-    NCI_NODES,
   }
 }
