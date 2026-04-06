@@ -73,7 +73,7 @@ function ElectronPath({ x1, y1, x2, y2, opacity = 1, delay, id }: ElectronPathPr
             <stop offset="100%" stopColor="transparent" />
           </linearGradient>
         </defs>
-        {/* Electron dots traveling along the line */}
+        {/* Electron dots traveling left to right only */}
         {[0, 1, 2].map((i) => (
           <motion.circle
             key={i}
@@ -84,23 +84,23 @@ function ElectronPath({ x1, y1, x2, y2, opacity = 1, delay, id }: ElectronPathPr
           >
             <animate
               attributeName="cx"
-              values={`${sx.get()};${ex.get()};${sx.get()}`}
-              dur="3s"
-              begin={`${delay + i * 1}s`}
+              values={`${sx.get()};${ex.get()}`}
+              dur="5s"
+              begin={`${delay + i * 1.6}s`}
               repeatCount="indefinite"
             />
             <animate
               attributeName="cy"
-              values={`${sy.get()};${ey.get()};${sy.get()}`}
-              dur="3s"
-              begin={`${delay + i * 1}s`}
+              values={`${sy.get()};${ey.get()}`}
+              dur="5s"
+              begin={`${delay + i * 1.6}s`}
               repeatCount="indefinite"
             />
             <animate
               attributeName="opacity"
-              values="0;1;1;0"
-              dur="3s"
-              begin={`${delay + i * 1}s`}
+              values="0;0.9;0.9;0"
+              dur="5s"
+              begin={`${delay + i * 1.6}s`}
               repeatCount="indefinite"
             />
           </motion.circle>
