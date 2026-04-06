@@ -11,7 +11,8 @@ export default function Hero({ dark }: { dark: boolean }) {
         <motion.img
           src="/Symphony_Logo_White.png"
           alt="Symphony"
-          className={`h-16 md:h-24 mx-auto mb-6 transition-all duration-500 ${dark ? '' : 'invert'}`}
+          className="h-16 md:h-24 mx-auto mb-6 transition-all duration-500"
+          style={dark ? {} : { filter: 'brightness(0) saturate(100%) invert(12%) sepia(95%) saturate(4744%) hue-rotate(222deg) brightness(72%) contrast(115%)' }}
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
