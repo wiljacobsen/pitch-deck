@@ -2,23 +2,23 @@ import { motion } from 'motion/react'
 import AnimatedGrid from '../ui/AnimatedGrid'
 import ScrollIndicator from './ScrollIndicator'
 
-export default function Hero() {
+export default function Hero({ dark }: { dark: boolean }) {
   return (
-    <section className="relative h-screen flex items-center justify-center overflow-hidden bg-navy">
+    <section className={`relative h-screen flex items-center justify-center overflow-hidden transition-colors duration-500 ${dark ? 'bg-navy' : 'bg-white'}`}>
       <AnimatedGrid />
 
       <div className="relative z-10 text-center px-6">
         <motion.img
           src="/Symphony_Logo_White.png"
           alt="Symphony"
-          className="h-16 md:h-24 mx-auto mb-6"
+          className={`h-16 md:h-24 mx-auto mb-6 transition-all duration-500 ${dark ? '' : 'invert'}`}
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
         />
 
         <motion.p
-          className="text-lg md:text-2xl text-white/60 font-light tracking-wide"
+          className={`text-lg md:text-2xl font-light tracking-wide transition-colors duration-500 ${dark ? 'text-white/60' : 'text-gray-400'}`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
@@ -34,7 +34,7 @@ export default function Hero() {
         />
       </div>
 
-      <ScrollIndicator />
+      <ScrollIndicator dark={dark} />
     </section>
   )
 }
