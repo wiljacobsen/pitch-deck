@@ -111,13 +111,13 @@ export default function WhyWeExist({ dark }: { dark: boolean }) {
       <div className="max-w-6xl w-full mx-auto">
         {/* Title row */}
         <motion.div
-          className="mb-4"
+          className="mb-8"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className={`text-2xl md:text-3xl font-bold mb-1 transition-colors duration-500 ${dark ? 'text-white' : 'text-gray-900'}`}>
+          <h2 className={`text-2xl md:text-3xl font-bold mb-2 transition-colors duration-500 ${dark ? 'text-white' : 'text-gray-900'}`}>
             Why Do We Exist?
           </h2>
           <p className={`text-sm md:text-base transition-colors duration-500 max-w-3xl ${dark ? 'text-white/60' : 'text-gray-500'}`}>
@@ -187,40 +187,56 @@ export default function WhyWeExist({ dark }: { dark: boolean }) {
                 })}
               </div>
 
-              {/* Bullet points overlaid on the upper-left whitespace of the chart */}
-              <div className="absolute top-2 left-2 z-10 max-w-[55%]">
-                <ul className="space-y-2 mb-4">
+              {/* Frosted glass overlay with bullet points + legend */}
+              <motion.div
+                className="absolute top-3 left-3 z-10 max-w-[54%] rounded-xl border backdrop-blur-xl px-5 py-4"
+                style={{
+                  background: dark ? 'rgba(10,22,40,0.82)' : 'rgba(255,255,255,0.85)',
+                  borderColor: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                  boxShadow: dark
+                    ? '0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)'
+                    : '0 4px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)',
+                }}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <ul className="space-y-2.5 mb-4">
                   {BULLET_POINTS.map((point, i) => (
                     <motion.li
                       key={i}
-                      className={`flex items-start gap-2 text-xs md:text-sm ${dark ? 'text-white/80' : 'text-gray-700'}`}
-                      initial={{ opacity: 0, x: -15 }}
+                      className={`flex items-start gap-2.5 text-xs md:text-sm leading-relaxed ${dark ? 'text-white/85' : 'text-gray-700'}`}
+                      initial={{ opacity: 0, x: -10 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: 0.3 + i * 0.1, duration: 0.4 }}
+                      transition={{ delay: 0.35 + i * 0.1, duration: 0.4 }}
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" />
                       {point}
                     </motion.li>
                   ))}
                 </ul>
 
+                {/* Subtle separator */}
+                <div className="h-px mb-3" style={{ background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }} />
+
                 {/* Legend */}
                 <motion.div
-                  className="flex flex-wrap gap-3"
+                  className="flex flex-wrap gap-x-4 gap-y-1.5"
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
                   viewport={{ once: true }}
-                  transition={{ delay: 0.5, duration: 0.4 }}
+                  transition={{ delay: 0.6, duration: 0.4 }}
                 >
                   {LEGEND.map((item) => (
-                    <div key={item.label} className="flex items-center gap-1">
-                      <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: item.color }} />
-                      <span className={`text-[9px] md:text-[11px] ${dark ? 'text-white/50' : 'text-gray-500'}`}>{item.label}</span>
+                    <div key={item.label} className="flex items-center gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-[3px]" style={{ backgroundColor: item.color }} />
+                      <span className={`text-[9px] md:text-[11px] font-medium ${dark ? 'text-white/55' : 'text-gray-500'}`}>{item.label}</span>
                     </div>
                   ))}
                 </motion.div>
-              </div>
+              </motion.div>
             </div>
 
             {/* Right-side annotation labels */}
