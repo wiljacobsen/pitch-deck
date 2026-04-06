@@ -25,20 +25,22 @@ function ChainNode({ icon, label, x, y, opacity = 1, scale = 1, highlight = fals
       <div
         className={`
           w-24 h-24 md:w-28 md:h-28 rounded-2xl flex items-center justify-center
-          backdrop-blur-md border transition-colors duration-500
+          border transition-colors duration-500
           ${highlight
-            ? 'bg-accent/15 border-accent/40'
+            ? dark
+              ? 'bg-accent/20 border-accent/50 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
+              : 'bg-blue-50 border-accent/40 shadow-[0_0_20px_rgba(59,130,246,0.1)]'
             : dark
-              ? 'bg-white/5 border-white/10'
-              : 'bg-gray-100 border-gray-200'
+              ? 'bg-white/10 border-white/20'
+              : 'bg-white border-gray-300 shadow-sm'
           }
         `}
       >
-        <div className={highlight ? 'text-accent-light' : dark ? 'text-white/80' : 'text-gray-600'}>
+        <div className={highlight ? 'text-accent' : dark ? 'text-white' : 'text-gray-700'}>
           {icon}
         </div>
       </div>
-      <span className={`text-xs md:text-sm text-center font-medium whitespace-nowrap ${highlight ? 'text-accent-light' : dark ? 'text-white/70' : 'text-gray-500'}`}>
+      <span className={`text-xs md:text-sm text-center font-medium whitespace-nowrap ${highlight ? (dark ? 'text-accent-light' : 'text-accent') : dark ? 'text-white/80' : 'text-gray-600'}`}>
         {label}
       </span>
     </motion.div>
@@ -297,20 +299,6 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: ValueChainCa
         />
       ))}
 
-      {/* Electron particles */}
-      {electronPaths.map((ep, i) => (
-        <ElectronPath
-          key={`electron-${i}`}
-          id={`e${i}`}
-          x1={p[ep.from].x}
-          y1={p[ep.from].y}
-          x2={p[ep.to].x}
-          y2={p[ep.to].y}
-          opacity={ep.opacity}
-          delay={ep.delay}
-        />
-      ))}
-
       {/* Nodes */}
       {nodes.map((node) => (
         <ChainNode
@@ -325,6 +313,22 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: ValueChainCa
           dark={dark}
         />
       ))}
+
+      {/* Electron particles — rendered on top of nodes */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        {electronPaths.map((ep, i) => (
+          <ElectronPath
+            key={`electron-${i}`}
+            id={`e${i}`}
+            x1={p[ep.from].x}
+            y1={p[ep.from].y}
+            x2={p[ep.to].x}
+            y2={p[ep.to].y}
+            opacity={ep.opacity}
+            delay={ep.delay}
+          />
+        ))}
+      </div>
 
       {/* Ownership labels */}
       {OWNERSHIP_LABELS.map((label) => (
