@@ -1,18 +1,34 @@
 export default function SolarPanel({ className = "w-10 h-10" }: { className?: string }) {
   return (
     <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      {/* Panel frame - tilted */}
-      <rect x="6" y="10" width="36" height="24" rx="2" transform="rotate(-5 24 22)" />
-      {/* Grid lines horizontal */}
-      <line x1="7" y1="18" x2="41" y2="16" />
-      <line x1="8" y1="26" x2="42" y2="24" />
-      {/* Grid lines vertical */}
-      <line x1="15" y1="9" x2="14" y2="33" />
-      <line x1="24" y1="8.5" x2="24" y2="32.5" />
-      <line x1="33" y1="8" x2="34" y2="32" />
-      {/* Stand */}
-      <line x1="24" y1="34" x2="24" y2="44" />
-      <line x1="18" y1="44" x2="30" y2="44" />
+      {/* Isometric solar array — tilted panel on structural frame */}
+      {/* Panel face (tilted toward viewer) */}
+      <path d="M6 12 L24 6 L42 14 L24 20 Z" fill="currentColor" opacity="0.08" />
+      <path d="M6 12 L24 6 L42 14 L24 20 Z" />
+      {/* Panel grid — horizontal lines */}
+      <line x1="10" y1="10.5" x2="38" y2="14.5" />
+      <line x1="15" y1="15" x2="33" y2="11" />
+      {/* Panel grid — vertical lines */}
+      <line x1="15" y1="9" x2="15" y2="16" />
+      <line x1="24" y1="6" x2="24" y2="20" />
+      <line x1="33" y1="10" x2="33" y2="17" />
+      {/* Panel thickness — bottom edge */}
+      <path d="M6 12 L6 14 L24 22 L24 20" fill="currentColor" opacity="0.10" />
+      <line x1="6" y1="12" x2="6" y2="14" />
+      <line x1="6" y1="14" x2="24" y2="22" />
+      <line x1="24" y1="20" x2="24" y2="22" />
+      <line x1="42" y1="14" x2="42" y2="16" />
+      <line x1="42" y1="16" x2="24" y2="22" />
+      {/* A-frame support legs */}
+      <line x1="14" y1="15" x2="12" y2="38" />
+      <line x1="14" y1="15" x2="20" y2="38" />
+      <line x1="34" y1="15" x2="28" y2="38" />
+      <line x1="34" y1="15" x2="36" y2="38" />
+      {/* Cross brace */}
+      <line x1="14" y1="30" x2="18" y2="30" />
+      <line x1="30" y1="30" x2="34" y2="30" />
+      {/* Ground pad */}
+      <path d="M8 38 L24 44 L40 38" strokeWidth="1" opacity="0.3" />
     </svg>
   )
 }
