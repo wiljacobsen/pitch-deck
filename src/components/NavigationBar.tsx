@@ -5,26 +5,25 @@ interface NavStep {
   sectionId: string
   label: string
   display: string
-  scrollPct?: number // for sub-steps within a scrollable section
+  scrollPct?: number
 }
 
 const STEPS: NavStep[] = [
-  { sectionId: 'hero', label: 'Introduction', display: '1' },
-  { sectionId: 'value-chain', label: 'Value Chain', display: '2.0', scrollPct: 0.03 },
-  { sectionId: 'value-chain', label: 'Energy transition', display: '2.1', scrollPct: 0.16 },
-  { sectionId: 'value-chain', label: 'Connecting to grid', display: '2.2', scrollPct: 0.36 },
-  { sectionId: 'value-chain', label: 'Digital growth', display: '2.3', scrollPct: 0.54 },
-  { sectionId: 'value-chain', label: "Symphony's role", display: '2.4', scrollPct: 0.72 },
-  { sectionId: 'products', label: 'Products', display: '3' },
-  { sectionId: 'why-we-exist', label: 'Why We Exist', display: '4' },
+  { sectionId: 'hero', label: 'Introduction', display: '0' },
+  { sectionId: 'value-chain', label: 'Value Chain', display: '1.1', scrollPct: 0.06 },
+  { sectionId: 'value-chain', label: 'Energy transition', display: '1.2', scrollPct: 0.30 },
+  { sectionId: 'value-chain', label: 'Connecting to grid', display: '1.3', scrollPct: 0.50 },
+  { sectionId: 'value-chain', label: 'Digital growth', display: '1.4', scrollPct: 0.70 },
+  { sectionId: 'value-chain', label: "Symphony's role", display: '1.5', scrollPct: 0.90 },
+  { sectionId: 'products', label: 'Products', display: '2' },
+  { sectionId: 'why-we-exist', label: 'Why We Exist', display: '3' },
 ]
 
-// Menu shows only top-level sections
 const MENU_ITEMS = [
-  { label: 'Introduction', stepIndex: 0, display: '1' },
-  { label: 'Value Chain', stepIndex: 1, display: '2' },
-  { label: 'Products', stepIndex: 6, display: '3' },
-  { label: 'Why We Exist', stepIndex: 7, display: '4' },
+  { label: 'Introduction', stepIndex: 0, display: '0' },
+  { label: 'Value Chain', stepIndex: 1, display: '1' },
+  { label: 'Products', stepIndex: 6, display: '2' },
+  { label: 'Why We Exist', stepIndex: 7, display: '3' },
 ]
 
 interface NavigationBarProps {
@@ -36,7 +35,6 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
   const [current, setCurrent] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // Track current step by scroll position
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY
@@ -51,11 +49,10 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
 
         if (scrollY >= vcTop && scrollY < vcTop + vcHeight - vh * 0.5) {
           const pct = (scrollY - vcTop) / vcScrollRange
-          // Find the matching sub-step
           const vcSteps = STEPS.filter((s) => s.sectionId === 'value-chain')
-          let bestIdx = 1 // default to 2.0
+          let bestIdx = 1
           for (let i = vcSteps.length - 1; i >= 0; i--) {
-            if (pct >= (vcSteps[i].scrollPct! - 0.04)) {
+            if (pct >= (vcSteps[i].scrollPct! - 0.06)) {
               bestIdx = STEPS.indexOf(vcSteps[i])
               break
             }
@@ -67,10 +64,9 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
 
       // Check other sections
       const scrollCheck = scrollY + vh / 3
-      // Check from bottom up
       for (let i = STEPS.length - 1; i >= 0; i--) {
         const step = STEPS[i]
-        if (step.scrollPct !== undefined) continue // skip sub-steps, handled above
+        if (step.scrollPct !== undefined) continue
         const el = document.getElementById(step.sectionId)
         if (el && el.offsetTop <= scrollCheck) {
           setCurrent(i)
@@ -104,7 +100,6 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
   const prev = () => { if (current > 0) scrollTo(current - 1) }
   const next = () => { if (current < STEPS.length - 1) scrollTo(current + 1) }
 
-  // Close menu on scroll
   useEffect(() => {
     if (!menuOpen) return
     const close = () => setMenuOpen(false)
@@ -118,7 +113,6 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
   const textMuted = dark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.25)'
   const text = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.7)'
 
-  // Which top-level menu item is active
   const activeMenuIndex = MENU_ITEMS.findLastIndex((m) => m.stepIndex <= current)
 
   return (
@@ -206,7 +200,7 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
         </motion.div>
       </button>
 
-      {/* Dropdown menu — shows top-level sections only */}
+      {/* Dropdown menu — top-level sections only */}
       <AnimatePresence>
         {menuOpen && (
           <>

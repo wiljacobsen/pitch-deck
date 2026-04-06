@@ -221,7 +221,7 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
           <ElectronPath x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.stateAFade} delay={0.5} />
           <ElectronPath x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.stateAFade} delay={1} />
 
-          {/* ===== Core chain arrows: transmission → distribution → load (from State B) ===== */}
+          {/* ===== Core chain arrows: transmission → distribution → load (from phase 1.2) ===== */}
           <ChainArrow id="c0" x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.coreChainArrows} dark={dark} />
           <ChainArrow id="c1" x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.coreChainArrows} dark={dark} />
 
@@ -229,7 +229,7 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
           <ElectronPath x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.coreChainArrows} delay={0.3} />
           <ElectronPath x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.coreChainArrows} delay={0.8} />
 
-          {/* ===== Generator → NCI → Transmission arrows (appear in State C) ===== */}
+          {/* ===== Generator → NCI → Transmission arrows (appear in phase 1.3) ===== */}
           {(['solar', 'wind', 'battery'] as const).map((gen, i) => {
             const nci = `nci${gen.charAt(0).toUpperCase() + gen.slice(1)}` as NodeId
             return (
@@ -242,23 +242,23 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
             )
           })}
 
-          {/* ===== DC arrows: distribution → nciDC → dataCentre (appear in State D) ===== */}
-          <ChainArrow id="dc0" x1={p.distribution.x} y1={p.distribution.y} x2={p.nciDataCentre.x} y2={p.nciDataCentre.y} opacity={anim.dcArrows} dark={dark} />
+          {/* ===== DC arrows: transmission → nciDC → dataCentre (appear in phase 1.4) ===== */}
+          <ChainArrow id="dc0" x1={p.transmission.x} y1={p.transmission.y} x2={p.nciDataCentre.x} y2={p.nciDataCentre.y} opacity={anim.dcArrows} dark={dark} />
           <ChainArrow id="dc1" x1={p.nciDataCentre.x} y1={p.nciDataCentre.y} x2={p.dataCentre.x} y2={p.dataCentre.y} opacity={anim.dcArrows} dark={dark} />
-          <ElectronPath x1={p.distribution.x} y1={p.distribution.y} x2={p.nciDataCentre.x} y2={p.nciDataCentre.y} opacity={anim.dcArrows} delay={0.1} />
+          <ElectronPath x1={p.transmission.x} y1={p.transmission.y} x2={p.nciDataCentre.x} y2={p.nciDataCentre.y} opacity={anim.dcArrows} delay={0.1} />
           <ElectronPath x1={p.nciDataCentre.x} y1={p.nciDataCentre.y} x2={p.dataCentre.x} y2={p.dataCentre.y} opacity={anim.dcArrows} delay={0.4} />
 
           {/* ===== NODES ===== */}
 
-          {/* Coal generator — State A only */}
+          {/* Coal generator — phase 1.1 only */}
           <ChainNode icon={<CoalPlant className={iconSize} />} label="Coal Generation" x={p.coal.x} y={p.coal.y} opacity={anim.coalOpacity} dark={dark} />
 
-          {/* Renewable generators — appear in State B */}
+          {/* Renewable generators — appear in phase 1.2 */}
           <ChainNode icon={<SolarPanel className={iconSize} />} label="Solar" x={p.solar.x} y={p.solar.y} opacity={anim.renewablesOpacity} dark={dark} />
           <ChainNode icon={<WindTurbine className={iconSize} />} label="Wind" x={p.wind.x} y={p.wind.y} opacity={anim.renewablesOpacity} dark={dark} />
           <ChainNode icon={<Battery className={iconSize} />} label="Battery" x={p.battery.x} y={p.battery.y} opacity={anim.renewablesOpacity} dark={dark} />
 
-          {/* Generator-side NCI boxes — appear in State C, highlight in State E */}
+          {/* Generator-side NCI boxes — appear in phase 1.3, highlight in phase 1.5 */}
           <ChainNode icon={<Transformer className={iconSize} />} label="Connection Infra" x={p.nciSolar.x} y={p.nciSolar.y} opacity={anim.nciOpacity} scale={anim.nciScale} highlightProgress={anim.nciHighlight} dark={dark} />
           <ChainNode icon={<Transformer className={iconSize} />} label="Connection Infra" x={p.nciWind.x} y={p.nciWind.y} opacity={anim.nciOpacity} scale={anim.nciScale} highlightProgress={anim.nciHighlight} dark={dark} />
           <ChainNode icon={<Transformer className={iconSize} />} label="Connection Infra" x={p.nciBattery.x} y={p.nciBattery.y} opacity={anim.nciOpacity} scale={anim.nciScale} highlightProgress={anim.nciHighlight} dark={dark} />
@@ -268,10 +268,10 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
           <ChainNode icon={<Transformer className={iconSize} />} label="Distribution" x={p.distribution.x} y={p.distribution.y} dark={dark} />
           <ChainNode icon={<Buildings className={iconSize} />} label="Load / Consumers" x={p.load.x} y={p.load.y} dark={dark} />
 
-          {/* Data Centre — appears in State D */}
+          {/* Data Centre — appears in phase 1.4, connects to transmission */}
           <ChainNode icon={<DataCentre className={iconSize} />} label="Data Centres" x={p.dataCentre.x} y={p.dataCentre.y} opacity={anim.dcOpacity} scale={anim.dcScale} dark={dark} />
 
-          {/* DC-side NCI — appears in State D, highlights in State E */}
+          {/* DC-side NCI — appears in phase 1.4, highlights in phase 1.5 */}
           <ChainNode icon={<Transformer className={iconSize} />} label="Connection Infra" x={p.nciDataCentre.x} y={p.nciDataCentre.y} opacity={anim.dcOpacity} scale={anim.dcScale} highlightProgress={anim.nciHighlight} dark={dark} />
         </div>
       </div>

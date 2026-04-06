@@ -31,8 +31,8 @@ const STATE_A: Record<NodeId, NodePosition> = {
   transmission:   { x: 40, y: 50 },
   distribution:   { x: 65, y: 50 },
   load:           { x: 90, y: 50 },
-  dataCentre:     { x: 90, y: 50 },
-  nciDataCentre:  { x: 90, y: 50 },
+  dataCentre:     { x: 74, y: 68 },
+  nciDataCentre:  { x: 58, y: 68 },
 }
 
 // State B: Renewables fanned out in column, coal fades out at top
@@ -47,104 +47,85 @@ const STATE_B: Record<NodeId, NodePosition> = {
   transmission:   { x: 46, y: 44 },
   distribution:   { x: 68, y: 44 },
   load:           { x: 90, y: 44 },
-  dataCentre:     { x: 90, y: 44 },
-  nciDataCentre:  { x: 78, y: 44 },
+  dataCentre:     { x: 74, y: 68 },
+  nciDataCentre:  { x: 58, y: 68 },
 }
 
-// State C overrides: load shifts up, DC + nciDC drop down
-const STATE_C: Partial<Record<NodeId, NodePosition>> = {
-  distribution:   { x: 68, y: 36 },
-  load:           { x: 90, y: 24 },
-  dataCentre:     { x: 90, y: 62 },
-  nciDataCentre:  { x: 78, y: 62 },
-}
-
-// Nodes that only morph A→B
-const SIMPLE_NODES: NodeId[] = [
+const ALL_NODES: NodeId[] = [
   'coal', 'solar', 'wind', 'battery',
   'nciSolar', 'nciWind', 'nciBattery',
-  'transmission',
-]
-
-// Nodes that morph A→B then B→C
-const DUAL_NODES: NodeId[] = [
-  'distribution', 'load', 'dataCentre', 'nciDataCentre',
+  'transmission', 'distribution', 'load',
+  'dataCentre', 'nciDataCentre',
 ]
 
 export type NodePositions = Record<NodeId, { x: MotionValue<number>; y: MotionValue<number> }>
 
 export function useValueChainAnimation(scrollYProgress: MotionValue<number>) {
-  // Timeline (600vh section):
-  // 0.00–0.06  State A fades in — Traditional chain with coal
-  // 0.06–0.12  Title A fades out
-  // 0.10–0.14  Title B fades in (energy transition)
-  // 0.10–0.22  Positions morph A→B, coal fades, renewables appear — NO arrows from renewables yet
-  // 0.22–0.28  Pause (renewables visible but disconnected)
-  // 0.26–0.32  Title B fades out, Title C fades in (connecting to grid)
-  // 0.30–0.40  NCI boxes appear, generator→NCI→transmission arrows + electrons
-  // 0.40–0.46  Pause (all connected)
-  // 0.44–0.50  Title C fades out, Title D fades in (digital growth)
-  // 0.48–0.58  Load shifts up, DC + nciDC appear, DC arrows + electrons
-  // 0.58–0.64  Pause (DC connected)
-  // 0.62–0.68  Title D fades out, Title E fades in (Symphony)
-  // 0.66–0.78  NCI highlight (all NCI including nciDC)
-  // 0.78–1.00  Hold final state
+  // Timeline (600vh section) — 5 phases, each ~20% with clean stable zones:
+  //
+  // Phase 1.1 Traditional  (0.00–0.18)  stable 0.03–0.15  nav→0.06
+  //   Title A: fade in 0–0.03, hold 0.03–0.15, fade out 0.15–0.20
+  //   State A arrows + electrons visible 0–0.18
+  //
+  // Phase 1.2 Energy trans  (0.18–0.38)  stable 0.26–0.35  nav→0.30
+  //   Morph A→B: 0.17–0.25 (coal fades, renewables appear)
+  //   Title B: fade in 0.18–0.23, hold 0.23–0.35, fade out 0.35–0.40
+  //   Renewables visible but disconnected
+  //
+  // Phase 1.3 Connecting    (0.38–0.58)  stable 0.48–0.55  nav→0.50
+  //   NCI appear: 0.38–0.46, connection arrows 0.40–0.48
+  //   Title C: fade in 0.37–0.42, hold 0.42–0.55, fade out 0.55–0.60
+  //   Core chain arrows (trans→dist→load): 0.24–0.32
+  //
+  // Phase 1.4 Digital       (0.58–0.78)  stable 0.68–0.75  nav→0.70
+  //   DC + nciDC appear: 0.58–0.66, DC arrows 0.60–0.68
+  //   Title D: fade in 0.57–0.62, hold 0.62–0.75, fade out 0.75–0.80
+  //
+  // Phase 1.5 Symphony      (0.78–1.00)  stable 0.88–1.00  nav→0.90
+  //   NCI highlight: 0.80–0.90
+  //   Title E: fade in 0.78–0.84, hold 0.84–1.00
 
   const positions = {} as NodePositions
 
-  // Simple A→B morph nodes
-  for (const id of SIMPLE_NODES) {
+  for (const id of ALL_NODES) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     positions[id] = {
-      x: useTransform(scrollYProgress, [0.10, 0.22], [STATE_A[id].x, STATE_B[id].x]),
-      y: useTransform(scrollYProgress, [0.10, 0.22], [STATE_A[id].y, STATE_B[id].y]),
-    }
-  }
-
-  // Dual A→B→C morph nodes
-  for (const id of DUAL_NODES) {
-    const c = STATE_C[id]!
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    positions[id] = {
-      x: useTransform(scrollYProgress, [0.10, 0.22, 0.48, 0.58], [STATE_A[id].x, STATE_B[id].x, STATE_B[id].x, c.x]),
-      y: useTransform(scrollYProgress, [0.10, 0.22, 0.48, 0.58], [STATE_A[id].y, STATE_B[id].y, STATE_B[id].y, c.y]),
+      x: useTransform(scrollYProgress, [0.17, 0.25], [STATE_A[id].x, STATE_B[id].x]),
+      y: useTransform(scrollYProgress, [0.17, 0.25], [STATE_A[id].y, STATE_B[id].y]),
     }
   }
 
   // === Title transitions ===
-  const titleAOpacity = useTransform(scrollYProgress, [0, 0.04, 0.06, 0.12], [0, 1, 1, 0])
-  const titleBOpacity = useTransform(scrollYProgress, [0.10, 0.16, 0.24, 0.30], [0, 1, 1, 0])
-  const titleCOpacity = useTransform(scrollYProgress, [0.28, 0.34, 0.42, 0.48], [0, 1, 1, 0])
-  const titleDOpacity = useTransform(scrollYProgress, [0.46, 0.52, 0.60, 0.66], [0, 1, 1, 0])
-  const titleEOpacity = useTransform(scrollYProgress, [0.64, 0.72], [0, 1])
+  const titleAOpacity = useTransform(scrollYProgress, [0, 0.03, 0.15, 0.20], [0, 1, 1, 0])
+  const titleBOpacity = useTransform(scrollYProgress, [0.18, 0.23, 0.35, 0.40], [0, 1, 1, 0])
+  const titleCOpacity = useTransform(scrollYProgress, [0.37, 0.42, 0.55, 0.60], [0, 1, 1, 0])
+  const titleDOpacity = useTransform(scrollYProgress, [0.57, 0.62, 0.75, 0.80], [0, 1, 1, 0])
+  const titleEOpacity = useTransform(scrollYProgress, [0.78, 0.84], [0, 1])
 
   // === Node visibility ===
-  const coalOpacity = useTransform(scrollYProgress, [0.10, 0.20], [1, 0])
-  const renewablesOpacity = useTransform(scrollYProgress, [0.12, 0.22], [0, 1])
-  const stateAFade = useTransform(scrollYProgress, [0.08, 0.16], [1, 0])
+  const coalOpacity = useTransform(scrollYProgress, [0.17, 0.24], [1, 0])
+  const renewablesOpacity = useTransform(scrollYProgress, [0.19, 0.26], [0, 1])
 
-  // NCI boxes (generator side) — appear when connecting to grid
-  const nciOpacity = useTransform(scrollYProgress, [0.30, 0.40], [0, 1])
-  const nciScale = useTransform(scrollYProgress, [0.30, 0.40], [0.7, 1])
+  // State A direct arrows (coal → trans → dist → load)
+  const stateAFade = useTransform(scrollYProgress, [0.15, 0.22], [1, 0])
+
+  // Core chain arrows (transmission → distribution → load) appear after morph
+  const coreChainArrows = useTransform(scrollYProgress, [0.24, 0.32], [0, 1])
+
+  // NCI boxes (generator side) — appear when connecting to grid (phase 1.3)
+  const nciOpacity = useTransform(scrollYProgress, [0.38, 0.46], [0, 1])
+  const nciScale = useTransform(scrollYProgress, [0.38, 0.46], [0.7, 1])
 
   // Arrows + electrons from generators → NCI → transmission
-  const connectionArrows = useTransform(scrollYProgress, [0.32, 0.42], [0, 1])
+  const connectionArrows = useTransform(scrollYProgress, [0.40, 0.48], [0, 1])
 
-  // Core chain arrows (transmission → distribution → load) from State B onward
-  const coreChainArrows = useTransform(scrollYProgress, [0.20, 0.30], [0, 1])
+  // DC phase (1.4): dataCentre + nciDataCentre appear, connect to transmission
+  const dcOpacity = useTransform(scrollYProgress, [0.58, 0.66], [0, 1])
+  const dcScale = useTransform(scrollYProgress, [0.58, 0.66], [0.7, 1])
+  const dcArrows = useTransform(scrollYProgress, [0.60, 0.68], [0, 1])
 
-  // DC phase: dataCentre + nciDataCentre appear
-  const dcOpacity = useTransform(scrollYProgress, [0.48, 0.58], [0, 1])
-  const dcScale = useTransform(scrollYProgress, [0.48, 0.58], [0.7, 1])
-
-  // DC connection arrows + electrons
-  const dcArrows = useTransform(scrollYProgress, [0.50, 0.60], [0, 1])
-
-  // Arrow from distribution up to load (appears when load shifts up)
-  const loadBranchArrow = useTransform(scrollYProgress, [0.52, 0.60], [0, 1])
-
-  // NCI highlight (neutral → accent blue) = Symphony reveal — ALL NCI including DC
-  const nciHighlight = useTransform(scrollYProgress, [0.66, 0.78], [0, 1])
+  // NCI highlight (neutral → accent blue) = Symphony reveal (phase 1.5)
+  const nciHighlight = useTransform(scrollYProgress, [0.80, 0.90], [0, 1])
 
   return {
     positions,
@@ -163,7 +144,6 @@ export function useValueChainAnimation(scrollYProgress: MotionValue<number>) {
     dcOpacity,
     dcScale,
     dcArrows,
-    loadBranchArrow,
     nciHighlight,
   }
 }
