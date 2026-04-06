@@ -28,10 +28,10 @@ function ChainNode({ icon, label, x, y, opacity = 1, scale = 1, highlight = fals
           border transition-colors duration-500
           ${highlight
             ? dark
-              ? 'bg-accent/20 border-accent/50 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
+              ? 'bg-[#1a2d52] border-accent/50 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
               : 'bg-blue-50 border-accent/40 shadow-[0_0_20px_rgba(59,130,246,0.1)]'
             : dark
-              ? 'bg-white/10 border-white/20'
+              ? 'bg-[#152035] border-white/20'
               : 'bg-white border-gray-300 shadow-sm'
           }
         `}
@@ -227,9 +227,9 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: ValueChainCa
 
   const nodes: { id: NodeId; icon: React.ReactNode; label: string; highlight?: boolean; opacity?: MotionValue<number> | number; scale?: MotionValue<number> | number }[] = [
     { id: 'generation', icon: <WindTurbine className={iconSize} />, label: 'Generation' },
-    { id: 'nci1', icon: <Transformer className={nciIconSize} />, label: 'Network Connection Infrastructure', highlight: true, opacity: anim.nciOpacity, scale: anim.nciScale },
+    { id: 'nci1', icon: <Transformer className={nciIconSize} />, label: 'Connection Infrastructure', highlight: true, opacity: anim.nciOpacity, scale: anim.nciScale },
     { id: 'transmission', icon: <PowerTower className={iconSize} />, label: 'Transmission' },
-    { id: 'nci2', icon: <Transformer className={nciIconSize} />, label: 'Network Connection Infrastructure', highlight: true, opacity: anim.nciOpacity, scale: anim.nciScale },
+    { id: 'nci2', icon: <Transformer className={nciIconSize} />, label: 'Connection Infrastructure', highlight: true, opacity: anim.nciOpacity, scale: anim.nciScale },
     { id: 'industrial', icon: <DataCentre className={iconSize} />, label: 'Large Industrial & Digital Load', opacity: anim.industrialOpacity },
     { id: 'distribution', icon: <Transformer className={nciIconSize} />, label: 'Distribution' },
     { id: 'load', icon: <Buildings className={iconSize} />, label: 'Load / Consumers' },
@@ -299,7 +299,21 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: ValueChainCa
         />
       ))}
 
-      {/* Nodes */}
+      {/* Electron particles — rendered before nodes so opaque boxes occlude them */}
+      {electronPaths.map((ep, i) => (
+        <ElectronPath
+          key={`electron-${i}`}
+          id={`e${i}`}
+          x1={p[ep.from].x}
+          y1={p[ep.from].y}
+          x2={p[ep.to].x}
+          y2={p[ep.to].y}
+          opacity={ep.opacity}
+          delay={ep.delay}
+        />
+      ))}
+
+      {/* Nodes — rendered on top so electrons disappear behind opaque boxes */}
       {nodes.map((node) => (
         <ChainNode
           key={node.id}
@@ -313,22 +327,6 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: ValueChainCa
           dark={dark}
         />
       ))}
-
-      {/* Electron particles — rendered on top of nodes */}
-      <div className="absolute inset-0 z-10 pointer-events-none">
-        {electronPaths.map((ep, i) => (
-          <ElectronPath
-            key={`electron-${i}`}
-            id={`e${i}`}
-            x1={p[ep.from].x}
-            y1={p[ep.from].y}
-            x2={p[ep.to].x}
-            y2={p[ep.to].y}
-            opacity={ep.opacity}
-            delay={ep.delay}
-          />
-        ))}
-      </div>
 
       {/* Ownership labels */}
       {OWNERSHIP_LABELS.map((label) => (
