@@ -11,7 +11,7 @@ export default function ValueChainSection({ dark }: { dark: boolean }) {
   })
 
   return (
-    <section ref={sectionRef} className={`relative h-[300vh] transition-colors duration-500 ${dark ? 'bg-navy' : 'bg-gray-50'}`}>
+    <section ref={sectionRef} className={`relative h-[400vh] transition-colors duration-500 ${dark ? 'bg-navy' : 'bg-gray-50'}`}>
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <ValueChainCanvas scrollYProgress={scrollYProgress} dark={dark} />
       </div>

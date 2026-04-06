@@ -1,89 +1,120 @@
 import { useTransform, type MotionValue } from 'motion/react'
 
 export type NodeId =
-  | 'generation'
-  | 'nci1'
+  | 'solar'
+  | 'wind'
+  | 'battery'
+  | 'gas'
+  | 'nciSolar'
+  | 'nciWind'
+  | 'nciBattery'
+  | 'nciGas'
   | 'transmission'
-  | 'nci2'
-  | 'industrial'
   | 'distribution'
   | 'load'
-
-export type OwnershipLabel = {
-  nodeId: NodeId
-  text: string
-  isSymphony: boolean
-}
-
-export const OWNERSHIP_LABELS: OwnershipLabel[] = [
-  { nodeId: 'generation', text: 'Our Clients', isSymphony: false },
-  { nodeId: 'nci1', text: 'Symphony', isSymphony: true },
-  { nodeId: 'transmission', text: 'Regulated TNSP', isSymphony: false },
-  { nodeId: 'nci2', text: 'Symphony', isSymphony: true },
-  { nodeId: 'industrial', text: 'Our Clients', isSymphony: false },
-]
 
 interface NodePosition {
   x: number
   y: number
 }
 
-const MAIN_Y = 40
-const BRANCH_Y = 70
-
+// State A: simple linear chain (only solar/transmission/distribution/load visible)
+// wind/battery/gas stacked behind solar, NCI nodes hidden
 const STATE_A: Record<NodeId, NodePosition> = {
-  generation:   { x: 10, y: MAIN_Y },
-  nci1:         { x: 30, y: MAIN_Y },
-  transmission: { x: 35, y: MAIN_Y },
-  nci2:         { x: 55, y: MAIN_Y },
-  industrial:   { x: 60, y: MAIN_Y },
-  distribution: { x: 60, y: MAIN_Y },
-  load:         { x: 85, y: MAIN_Y },
+  solar:        { x: 10, y: 45 },
+  wind:         { x: 10, y: 45 },
+  battery:      { x: 10, y: 45 },
+  gas:          { x: 10, y: 45 },
+  nciSolar:     { x: 10, y: 45 },
+  nciWind:      { x: 10, y: 45 },
+  nciBattery:   { x: 10, y: 45 },
+  nciGas:       { x: 10, y: 45 },
+  transmission: { x: 37, y: 45 },
+  distribution: { x: 63, y: 45 },
+  load:         { x: 90, y: 45 },
 }
 
+// State B: generators expand into left column, each with NCI box
 const STATE_B: Record<NodeId, NodePosition> = {
-  generation:   { x: 5,  y: MAIN_Y },
-  nci1:         { x: 20, y: MAIN_Y },
-  transmission: { x: 38, y: MAIN_Y },
-  nci2:         { x: 56, y: MAIN_Y },
-  industrial:   { x: 78, y: MAIN_Y },
-  distribution: { x: 56, y: BRANCH_Y },
-  load:         { x: 78, y: BRANCH_Y },
+  solar:        { x: 8,  y: 20 },
+  wind:         { x: 8,  y: 38 },
+  battery:      { x: 8,  y: 56 },
+  gas:          { x: 8,  y: 74 },
+  nciSolar:     { x: 24, y: 20 },
+  nciWind:      { x: 24, y: 38 },
+  nciBattery:   { x: 24, y: 56 },
+  nciGas:       { x: 24, y: 74 },
+  transmission: { x: 45, y: 45 },
+  distribution: { x: 68, y: 45 },
+  load:         { x: 90, y: 45 },
 }
 
-const ALL_NODES: NodeId[] = ['generation', 'nci1', 'transmission', 'nci2', 'industrial', 'distribution', 'load']
+const ALL_NODES: NodeId[] = [
+  'solar', 'wind', 'battery', 'gas',
+  'nciSolar', 'nciWind', 'nciBattery', 'nciGas',
+  'transmission', 'distribution', 'load',
+]
+
+const NCI_NODES: NodeId[] = ['nciSolar', 'nciWind', 'nciBattery', 'nciGas']
 
 export type NodePositions = Record<NodeId, { x: MotionValue<number>; y: MotionValue<number> }>
 
 export function useValueChainAnimation(scrollYProgress: MotionValue<number>) {
-  // Pre-compute ALL node positions as MotionValues (hooks at top level)
+  // Timeline:
+  // 0.0–0.15: State A visible (simple 4-node chain)
+  // 0.15–0.45: Morph A → B (generators expand, NCI boxes appear)
+  // 0.45–0.6: State B holds
+  // 0.6–0.8: State C (NCI boxes highlight to accent color)
+  // 0.8–1.0: State C holds
+
+  // All node positions interpolated A → B
   const positions = {} as NodePositions
   for (const id of ALL_NODES) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     positions[id] = {
-      x: useTransform(scrollYProgress, [0.3, 0.55], [STATE_A[id].x, STATE_B[id].x]),
-      y: useTransform(scrollYProgress, [0.3, 0.55], [STATE_A[id].y, STATE_B[id].y]),
+      x: useTransform(scrollYProgress, [0.15, 0.45], [STATE_A[id].x, STATE_B[id].x]),
+      y: useTransform(scrollYProgress, [0.15, 0.45], [STATE_A[id].y, STATE_B[id].y]),
     }
   }
 
-  const nciOpacity = useTransform(scrollYProgress, [0.3, 0.5], [0, 1])
-  const nciScale = useTransform(scrollYProgress, [0.3, 0.5], [0.7, 1])
-  const industrialOpacity = useTransform(scrollYProgress, [0.3, 0.5], [0, 1])
-  const branchOpacity = useTransform(scrollYProgress, [0.35, 0.55], [0, 1])
-  const bidirectionalOpacity = useTransform(scrollYProgress, [0.35, 0.5], [0, 1])
-  const ownershipOpacity = useTransform(scrollYProgress, [0.7, 0.85], [0, 1])
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.1], [0, 1])
-  const stateALoadLabel = useTransform(scrollYProgress, [0.3, 0.4], [1, 0])
+  // Generator expansion: wind/battery/gas fade in
+  const generatorExpand = useTransform(scrollYProgress, [0.18, 0.4], [0, 1])
+
+  // NCI nodes fade/scale in
+  const nciOpacity = useTransform(scrollYProgress, [0.25, 0.45], [0, 1])
+  const nciScale = useTransform(scrollYProgress, [0.25, 0.45], [0.7, 1])
+
+  // NCI highlight transition (neutral → accent color) for State C
+  const nciHighlight = useTransform(scrollYProgress, [0.6, 0.78], [0, 1])
+
+  // State A direct arrows fade out
+  const stateAFade = useTransform(scrollYProgress, [0.15, 0.3], [1, 0])
+
+  // State B arrows (generator → NCI → transmission) fade in
+  const stateBArrows = useTransform(scrollYProgress, [0.25, 0.45], [0, 1])
+
+  // Title
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.08], [0, 1])
+
+  // Subtitle text transition (State A text fades, State B text appears)
+  const subtitleAOpacity = useTransform(scrollYProgress, [0.12, 0.22], [1, 0])
+  const subtitleBOpacity = useTransform(scrollYProgress, [0.35, 0.48], [0, 1])
+
+  // State C annotation
+  const stateCAnnotation = useTransform(scrollYProgress, [0.65, 0.8], [0, 1])
 
   return {
     positions,
+    generatorExpand,
     nciOpacity,
     nciScale,
-    industrialOpacity,
-    branchOpacity,
-    bidirectionalOpacity,
-    ownershipOpacity,
+    nciHighlight,
+    stateAFade,
+    stateBArrows,
     titleOpacity,
-    stateALoadLabel,
+    subtitleAOpacity,
+    subtitleBOpacity,
+    stateCAnnotation,
+    NCI_NODES,
   }
 }

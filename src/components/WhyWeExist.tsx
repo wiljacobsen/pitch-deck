@@ -1,8 +1,5 @@
 import { motion } from 'motion/react'
 
-// Data read from the screenshot chart
-// Historical years: ~1, 3.5, 4.5, 3, 3, 2.5, 2, 2, 3 GW
-// Projected years: stacked bars ramping to ~58 GW by 2029
 const COLORS = {
   historical: '#9CA3AF',
   nem: '#0C2D5A',
@@ -105,206 +102,187 @@ const ANNOTATIONS = [
 
 const Y_TICKS = [0, 10, 20, 30, 40, 50, 60, 70]
 
-function BarChart({ dark }: { dark: boolean }) {
+export default function WhyWeExist({ dark }: { dark: boolean }) {
   const gridColor = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)'
   const textColor = dark ? 'text-white/50' : 'text-gray-400'
 
   return (
-    <div className="relative w-full">
-      <div className="flex">
-        {/* Y-axis labels */}
-        <div className="relative shrink-0 w-10 mr-2" style={{ height: CHART_HEIGHT }}>
-          {Y_TICKS.map((val) => (
-            <span
-              key={val}
-              className={`absolute right-0 -translate-y-1/2 text-[10px] md:text-xs ${textColor}`}
-              style={{ bottom: `${(val / MAX_VALUE) * 100}%` }}
-            >
-              {val}
-            </span>
-          ))}
-        </div>
-
-        {/* Chart area */}
-        <div className="flex-1 relative" style={{ height: CHART_HEIGHT }}>
-          {/* Grid lines */}
-          {Y_TICKS.map((val) => (
-            <div
-              key={val}
-              className="absolute left-0 right-0 h-px"
-              style={{ bottom: `${(val / MAX_VALUE) * 100}%`, backgroundColor: gridColor }}
-            />
-          ))}
-
-          {/* Bars */}
-          <div className="absolute inset-0 flex items-end gap-[3px] md:gap-1.5 px-1">
-            {DATA.map((bar, barIndex) => {
-              const total = bar.segments.reduce((s, seg) => s + seg.value, 0)
-              const barHeight = (total / MAX_VALUE) * CHART_HEIGHT
-
-              return (
-                <div key={bar.year} className="flex-1 flex flex-col items-center" style={{ height: '100%', justifyContent: 'flex-end' }}>
-                  <motion.div
-                    className="w-full rounded-t-sm overflow-hidden"
-                    style={{ height: barHeight, transformOrigin: 'bottom' }}
-                    initial={{ scaleY: 0 }}
-                    whileInView={{ scaleY: 1 }}
-                    viewport={{ once: true, margin: '-20px' }}
-                    transition={{ duration: 0.7, delay: barIndex * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  >
-                    {/* Segments stacked bottom-to-top (first segment = bottom) */}
-                    <div className="w-full h-full flex flex-col-reverse">
-                      {bar.segments.map((seg, segIdx) => (
-                        <div
-                          key={segIdx}
-                          style={{
-                            height: `${(seg.value / total) * 100}%`,
-                            backgroundColor: seg.color,
-                            minHeight: 1,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </motion.div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Right-side annotation labels */}
-        <div className="relative shrink-0 w-40 ml-3" style={{ height: CHART_HEIGHT }}>
-          {ANNOTATIONS.map((ann, i) => (
-            <motion.div
-              key={ann.label}
-              className="absolute flex items-center gap-2"
-              style={{ bottom: `${(ann.valueMid / MAX_VALUE) * 100}%`, transform: 'translateY(50%)' }}
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.8 + i * 0.1, duration: 0.4 }}
-            >
-              <svg width="20" height="10" className="shrink-0">
-                <line x1="20" y1="5" x2="5" y2="5" stroke={ann.color} strokeWidth="1.5" />
-                <polygon points="0,2 0,8 5,5" fill={ann.color} />
-              </svg>
-              <span
-                className="text-[9px] md:text-[11px] font-semibold px-2 py-0.5 rounded whitespace-nowrap"
-                style={{
-                  backgroundColor: ann.color,
-                  color: ann.color === COLORS.dcLoad || ann.color === COLORS.dcGen ? '#0A1628' : 'white',
-                }}
-              >
-                {ann.label}
-              </span>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* X-axis year labels */}
-      <div className="flex ml-12 mr-[172px]">
-        <div className="flex-1 flex gap-[3px] md:gap-1.5 px-1">
-          {DATA.map((bar) => (
-            <div key={bar.year} className={`flex-1 text-center text-[9px] md:text-[11px] pt-2 ${textColor}`}>
-              {bar.year}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Historical brace */}
-      <div className="ml-12 mt-1" style={{ width: `calc(${(9 / DATA.length) * 100}% * (1 - 172px / 100%))` }}>
-        <motion.div
-          className="relative"
-          style={{ width: `${(9 / 14) * 100}%`, maxWidth: `calc(100% - 172px)` }}
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 1, duration: 0.5 }}
-        >
-          <div className="mx-2 h-3 border-b border-l border-r rounded-b-lg" style={{ borderColor: dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)' }} />
-          <div className={`text-center text-[10px] md:text-xs font-medium mt-1 ${textColor}`}>Historical capacity</div>
-        </motion.div>
-      </div>
-
-      {/* Y-axis title */}
-      <div
-        className={`absolute left-0 text-[10px] md:text-xs font-medium ${textColor} whitespace-nowrap`}
-        style={{ top: '50%', transform: 'rotate(-90deg) translateX(-50%)', transformOrigin: '0 0' }}
-      >
-        Annual HV Install Capacity (GW)
-      </div>
-
-      {/* Note */}
-      <motion.p
-        className={`mt-6 text-[9px] md:text-[10px] ${textColor} ml-12 italic`}
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ delay: 1.2, duration: 0.5 }}
-      >
-        Note: This excludes capacity needed to service regulated transmission substations and switchyards.
-      </motion.p>
-    </div>
-  )
-}
-
-export default function WhyWeExist({ dark }: { dark: boolean }) {
-  return (
-    <section className={`relative min-h-screen flex items-center justify-center py-24 px-6 transition-colors duration-500 ${dark ? 'bg-navy' : 'bg-gray-50'}`}>
+    <section className={`relative h-screen flex flex-col justify-center py-8 px-6 transition-colors duration-500 ${dark ? 'bg-navy' : 'bg-gray-50'}`}>
       <div className="max-w-6xl w-full mx-auto">
-        {/* Header */}
+        {/* Title row */}
         <motion.div
-          className="mb-12"
-          initial={{ opacity: 0, y: 30 }}
+          className="mb-4"
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
         >
-          <h2 className={`text-2xl md:text-4xl font-bold mb-2 transition-colors duration-500 ${dark ? 'text-white' : 'text-gray-900'}`}>
+          <h2 className={`text-2xl md:text-3xl font-bold mb-1 transition-colors duration-500 ${dark ? 'text-white' : 'text-gray-900'}`}>
             Why Do We Exist?
           </h2>
-          <p className={`text-base md:text-lg mb-8 transition-colors duration-500 max-w-4xl ${dark ? 'text-white/60' : 'text-gray-500'}`}>
+          <p className={`text-sm md:text-base transition-colors duration-500 max-w-3xl ${dark ? 'text-white/60' : 'text-gray-500'}`}>
             Future project connections hinge on execution capability and capacity.{' '}
             <span className="text-accent font-semibold">Symphony provides certainty of delivery for our partners.</span>
           </p>
-
-          <ul className="space-y-3 mb-12">
-            {BULLET_POINTS.map((point, i) => (
-              <motion.li
-                key={i}
-                className={`flex items-start gap-3 text-sm md:text-base ${dark ? 'text-white/80' : 'text-gray-700'}`}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 + i * 0.1, duration: 0.4 }}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 shrink-0" />
-                {point}
-              </motion.li>
-            ))}
-          </ul>
         </motion.div>
 
-        {/* Legend */}
-        <motion.div
-          className="flex flex-wrap gap-4 mb-6 ml-12"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-        >
-          {LEGEND.map((item) => (
-            <div key={item.label} className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: item.color }} />
-              <span className={`text-[10px] md:text-xs ${dark ? 'text-white/60' : 'text-gray-500'}`}>{item.label}</span>
+        {/* Chart with overlaid bullet points */}
+        <div className="relative w-full">
+          <div className="flex">
+            {/* Y-axis labels */}
+            <div className="relative shrink-0 w-8 mr-1" style={{ height: CHART_HEIGHT }}>
+              {Y_TICKS.map((val) => (
+                <span
+                  key={val}
+                  className={`absolute right-0 -translate-y-1/2 text-[10px] md:text-xs ${textColor}`}
+                  style={{ bottom: `${(val / MAX_VALUE) * 100}%` }}
+                >
+                  {val}
+                </span>
+              ))}
             </div>
-          ))}
-        </motion.div>
 
-        {/* Chart */}
-        <BarChart dark={dark} />
+            {/* Chart area */}
+            <div className="flex-1 relative" style={{ height: CHART_HEIGHT }}>
+              {/* Grid lines */}
+              {Y_TICKS.map((val) => (
+                <div
+                  key={val}
+                  className="absolute left-0 right-0 h-px"
+                  style={{ bottom: `${(val / MAX_VALUE) * 100}%`, backgroundColor: gridColor }}
+                />
+              ))}
+
+              {/* Bars */}
+              <div className="absolute inset-0 flex items-end gap-[3px] md:gap-1.5 px-1">
+                {DATA.map((bar, barIndex) => {
+                  const total = bar.segments.reduce((s, seg) => s + seg.value, 0)
+                  const barHeight = (total / MAX_VALUE) * CHART_HEIGHT
+
+                  return (
+                    <div key={bar.year} className="flex-1 flex flex-col items-center" style={{ height: '100%', justifyContent: 'flex-end' }}>
+                      <motion.div
+                        className="w-full rounded-t-sm overflow-hidden"
+                        style={{ height: barHeight, transformOrigin: 'bottom' }}
+                        initial={{ scaleY: 0 }}
+                        whileInView={{ scaleY: 1 }}
+                        viewport={{ once: true, margin: '-20px' }}
+                        transition={{ duration: 0.7, delay: barIndex * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      >
+                        <div className="w-full h-full flex flex-col-reverse">
+                          {bar.segments.map((seg, segIdx) => (
+                            <div
+                              key={segIdx}
+                              style={{
+                                height: `${(seg.value / total) * 100}%`,
+                                backgroundColor: seg.color,
+                                minHeight: 1,
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </motion.div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Bullet points overlaid on the upper-left whitespace of the chart */}
+              <div className="absolute top-2 left-2 z-10 max-w-[55%]">
+                <ul className="space-y-2 mb-4">
+                  {BULLET_POINTS.map((point, i) => (
+                    <motion.li
+                      key={i}
+                      className={`flex items-start gap-2 text-xs md:text-sm ${dark ? 'text-white/80' : 'text-gray-700'}`}
+                      initial={{ opacity: 0, x: -15 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.3 + i * 0.1, duration: 0.4 }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
+                      {point}
+                    </motion.li>
+                  ))}
+                </ul>
+
+                {/* Legend */}
+                <motion.div
+                  className="flex flex-wrap gap-3"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.5, duration: 0.4 }}
+                >
+                  {LEGEND.map((item) => (
+                    <div key={item.label} className="flex items-center gap-1">
+                      <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: item.color }} />
+                      <span className={`text-[9px] md:text-[11px] ${dark ? 'text-white/50' : 'text-gray-500'}`}>{item.label}</span>
+                    </div>
+                  ))}
+                </motion.div>
+              </div>
+            </div>
+
+            {/* Right-side annotation labels */}
+            <div className="relative shrink-0 w-40 ml-3" style={{ height: CHART_HEIGHT }}>
+              {ANNOTATIONS.map((ann, i) => (
+                <motion.div
+                  key={ann.label}
+                  className="absolute flex items-center gap-2"
+                  style={{ bottom: `${(ann.valueMid / MAX_VALUE) * 100}%`, transform: 'translateY(50%)' }}
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.8 + i * 0.1, duration: 0.4 }}
+                >
+                  <svg width="20" height="10" className="shrink-0">
+                    <line x1="20" y1="5" x2="5" y2="5" stroke={ann.color} strokeWidth="1.5" />
+                    <polygon points="0,2 0,8 5,5" fill={ann.color} />
+                  </svg>
+                  <span
+                    className="text-[9px] md:text-[11px] font-semibold px-2 py-0.5 rounded whitespace-nowrap"
+                    style={{
+                      backgroundColor: ann.color,
+                      color: ann.color === COLORS.dcLoad || ann.color === COLORS.dcGen ? '#0A1628' : 'white',
+                    }}
+                  >
+                    {ann.label}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* X-axis year labels */}
+          <div className="flex ml-9 mr-[172px]">
+            <div className="flex-1 flex gap-[3px] md:gap-1.5 px-1">
+              {DATA.map((bar) => (
+                <div key={bar.year} className={`flex-1 text-center text-[9px] md:text-[11px] pt-1 ${textColor}`}>
+                  {bar.year}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Y-axis title */}
+          <div
+            className={`absolute left-0 text-[10px] md:text-xs font-medium ${textColor} whitespace-nowrap`}
+            style={{ top: '50%', transform: 'rotate(-90deg) translateX(-50%)', transformOrigin: '0 0' }}
+          >
+            Annual HV Install Capacity (GW)
+          </div>
+
+          {/* Note */}
+          <motion.p
+            className={`mt-2 text-[8px] md:text-[10px] ${textColor} ml-9 italic`}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 1.2, duration: 0.5 }}
+          >
+            Note: This excludes capacity needed to service regulated transmission substations and switchyards.
+          </motion.p>
+        </div>
       </div>
     </section>
   )
