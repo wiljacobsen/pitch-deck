@@ -35,20 +35,20 @@ const STATE_A: Record<NodeId, NodePosition> = {
   nciDataCentre:  { x: 58, y: 68 },
 }
 
-// State B: Renewables fanned out in column, coal fades out at top
+// State B: Thermal stays at top, renewables fan out below — 4 rows
 const STATE_B: Record<NodeId, NodePosition> = {
-  coal:           { x: 10, y: 18 },
-  solar:          { x: 10, y: 18 },
-  wind:           { x: 10, y: 44 },
-  battery:        { x: 10, y: 70 },
-  nciSolar:       { x: 26, y: 18 },
-  nciWind:        { x: 26, y: 44 },
-  nciBattery:     { x: 26, y: 70 },
+  coal:           { x: 10, y: 12 },
+  solar:          { x: 10, y: 34 },
+  wind:           { x: 10, y: 56 },
+  battery:        { x: 10, y: 78 },
+  nciSolar:       { x: 26, y: 34 },
+  nciWind:        { x: 26, y: 56 },
+  nciBattery:     { x: 26, y: 78 },
   transmission:   { x: 46, y: 44 },
   distribution:   { x: 68, y: 44 },
   load:           { x: 90, y: 44 },
-  dataCentre:     { x: 74, y: 68 },
-  nciDataCentre:  { x: 58, y: 68 },
+  dataCentre:     { x: 74, y: 72 },
+  nciDataCentre:  { x: 58, y: 72 },
 }
 
 const ALL_NODES: NodeId[] = [
@@ -103,13 +103,13 @@ export function useValueChainAnimation(scrollYProgress: MotionValue<number>) {
   const titleEOpacity = useTransform(scrollYProgress, [0.78, 0.84], [0, 1])
 
   // === Node visibility ===
-  const coalOpacity = useTransform(scrollYProgress, [0.17, 0.24], [1, 0])
+  // Thermal (coal) stays visible throughout — no fade
   const renewablesOpacity = useTransform(scrollYProgress, [0.19, 0.26], [0, 1])
 
   // State A direct arrows (coal → trans → dist → load)
   const stateAFade = useTransform(scrollYProgress, [0.15, 0.22], [1, 0])
 
-  // Core chain arrows (transmission → distribution → load) appear after morph
+  // Core chain arrows (thermal→trans, trans→dist→load) appear after morph
   const coreChainArrows = useTransform(scrollYProgress, [0.24, 0.32], [0, 1])
 
   // NCI boxes (generator side) — appear when connecting to grid (phase 1.3)
@@ -134,7 +134,6 @@ export function useValueChainAnimation(scrollYProgress: MotionValue<number>) {
     titleCOpacity,
     titleDOpacity,
     titleEOpacity,
-    coalOpacity,
     renewablesOpacity,
     stateAFade,
     nciOpacity,

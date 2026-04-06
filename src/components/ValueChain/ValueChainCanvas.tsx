@@ -221,11 +221,13 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
           <ElectronPath x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.stateAFade} delay={0.5} />
           <ElectronPath x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.stateAFade} delay={1} />
 
-          {/* ===== Core chain arrows: transmission → distribution → load (from phase 1.2) ===== */}
+          {/* ===== Core chain arrows: thermal→trans, trans→dist→load (from phase 1.2) ===== */}
+          <ChainArrow id="ct" x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.coreChainArrows} dark={dark} />
           <ChainArrow id="c0" x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.coreChainArrows} dark={dark} />
           <ChainArrow id="c1" x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.coreChainArrows} dark={dark} />
 
           {/* Core chain electrons */}
+          <ElectronPath x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.coreChainArrows} delay={0} />
           <ElectronPath x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.coreChainArrows} delay={0.3} />
           <ElectronPath x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.coreChainArrows} delay={0.8} />
 
@@ -250,8 +252,8 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
 
           {/* ===== NODES ===== */}
 
-          {/* Coal generator — phase 1.1 only */}
-          <ChainNode icon={<CoalPlant className={iconSize} />} label="Coal Generation" x={p.coal.x} y={p.coal.y} opacity={anim.coalOpacity} dark={dark} />
+          {/* Thermal generator — stays visible throughout */}
+          <ChainNode icon={<CoalPlant className={iconSize} />} label="Thermal" x={p.coal.x} y={p.coal.y} dark={dark} />
 
           {/* Renewable generators — appear in phase 1.2 */}
           <ChainNode icon={<SolarPanel className={iconSize} />} label="Solar" x={p.solar.x} y={p.solar.y} opacity={anim.renewablesOpacity} dark={dark} />
