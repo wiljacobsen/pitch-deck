@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Hero from './components/Hero'
 import ValueChainSection from './components/ValueChain/ValueChainSection'
 import ProductsGrid from './components/ProductsGrid'
+import WhyWeExist from './components/WhyWeExist'
 import ThemeToggle from './components/ThemeToggle'
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
       <Hero dark={dark} />
       <ValueChainSection dark={dark} />
       <ProductsGrid dark={dark} />
+      <WhyWeExist dark={dark} />
     </main>
   )
 }
