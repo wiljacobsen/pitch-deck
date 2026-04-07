@@ -374,13 +374,13 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
           <ElectronDots x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.stateAFade} delay={0.5} />
           <ElectronDots x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.stateAFade} delay={1} />
 
-          {/* ===== Core chain arrows (from phase 1.2): thermal→trans with 90° turn, trans→dist→load straight ===== */}
-          <ChainArrow id="ct" x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.coreChainArrows} dark={dark} routing="h-first" />
+          {/* ===== Core chain arrows (from phase 1.2): thermal→trans with 90° turn (v-first: down then right), trans→dist→load straight ===== */}
+          <ChainArrow id="ct" x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.coreChainArrows} dark={dark} routing="v-first" />
           <ChainArrow id="c0" x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.coreChainArrows} dark={dark} />
           <ChainArrow id="c1" x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.coreChainArrows} dark={dark} />
 
           {/* Core chain electrons */}
-          <ElectronDots x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.coreChainArrows} delay={0} routing="h-first" />
+          <ElectronDots x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.coreChainArrows} delay={0} routing="v-first" />
           <ElectronDots x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.coreChainArrows} delay={0.3} />
           <ElectronDots x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.coreChainArrows} delay={0.8} />
 
@@ -390,17 +390,17 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
             return (
               <span key={gen}>
                 <ChainArrow id={`g${i}`} x1={p[gen].x} y1={p[gen].y} x2={p[nci].x} y2={p[nci].y} opacity={anim.connectionArrows} dark={dark} variant="secondary" />
-                <ChainArrow id={`n${i}`} x1={p[nci].x} y1={p[nci].y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.connectionArrows} dark={dark} variant="secondary" routing="h-first" />
+                <ChainArrow id={`n${i}`} x1={p[nci].x} y1={p[nci].y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.connectionArrows} dark={dark} variant="secondary" routing="v-first" />
                 <ElectronDots x1={p[gen].x} y1={p[gen].y} x2={p[nci].x} y2={p[nci].y} opacity={anim.connectionArrows} delay={i * 0.4} />
-                <ElectronDots x1={p[nci].x} y1={p[nci].y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.connectionArrows} delay={i * 0.4 + 0.2} routing="h-first" />
+                <ElectronDots x1={p[nci].x} y1={p[nci].y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.connectionArrows} delay={i * 0.4 + 0.2} routing="v-first" />
               </span>
             )
           })}
 
           {/* ===== DC arrows: transmission → nciDC (90° v-first turn) → dataCentre (straight) (phase 1.4) ===== */}
-          <ChainArrow id="dc0" x1={p.transmission.x} y1={p.transmission.y} x2={p.nciDataCentre.x} y2={p.nciDataCentre.y} opacity={anim.dcArrows} dark={dark} variant="secondary" routing="v-first" />
+          <ChainArrow id="dc0" x1={p.transmission.x} y1={p.transmission.y} x2={p.nciDataCentre.x} y2={p.nciDataCentre.y} opacity={anim.dcArrows} dark={dark} variant="secondary" routing="h-first" />
           <ChainArrow id="dc1" x1={p.nciDataCentre.x} y1={p.nciDataCentre.y} x2={p.dataCentre.x} y2={p.dataCentre.y} opacity={anim.dcArrows} dark={dark} variant="secondary" />
-          <ElectronDots x1={p.transmission.x} y1={p.transmission.y} x2={p.nciDataCentre.x} y2={p.nciDataCentre.y} opacity={anim.dcArrows} delay={0.1} routing="v-first" />
+          <ElectronDots x1={p.transmission.x} y1={p.transmission.y} x2={p.nciDataCentre.x} y2={p.nciDataCentre.y} opacity={anim.dcArrows} delay={0.1} routing="h-first" />
           <ElectronDots x1={p.nciDataCentre.x} y1={p.nciDataCentre.y} x2={p.dataCentre.x} y2={p.dataCentre.y} opacity={anim.dcArrows} delay={0.4} />
 
           {/* ===== NODES ===== */}

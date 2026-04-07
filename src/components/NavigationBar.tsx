@@ -88,14 +88,34 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
     const el = document.getElementById(step.sectionId)
     if (!el) return
 
+    let targetScroll: number
     if (step.scrollPct !== undefined) {
       const sectionHeight = el.scrollHeight
       const scrollRange = sectionHeight - window.innerHeight
-      const targetScroll = el.offsetTop + scrollRange * step.scrollPct
-      window.scrollTo({ top: targetScroll, behavior: 'smooth' })
+      targetScroll = el.offsetTop + scrollRange * step.scrollPct
     } else {
-      el.scrollIntoView({ behavior: 'smooth' })
+      targetScroll = el.offsetTop
     }
+
+    // Slow, deliberate eased scroll for nav button clicks
+    const start = window.scrollY
+    const distance = targetScroll - start
+    const duration = Math.min(1800, Math.max(800, Math.abs(distance) * 0.4))
+    let startTime: number | null = null
+
+    function easeInOutCubic(t: number) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+    }
+
+    function step2(timestamp: number) {
+      if (!startTime) startTime = timestamp
+      const elapsed = timestamp - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      window.scrollTo(0, start + distance * easeInOutCubic(progress))
+      if (progress < 1) requestAnimationFrame(step2)
+    }
+    requestAnimationFrame(step2)
+
     setMenuOpen(false)
   }, [])
 
