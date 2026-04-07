@@ -16,14 +16,16 @@ const STEPS: NavStep[] = [
   { sectionId: 'value-chain', label: 'Digital growth', display: '1.4', scrollPct: 0.70 },
   { sectionId: 'value-chain', label: "Symphony's role", display: '1.5', scrollPct: 0.90 },
   { sectionId: 'products', label: 'Products', display: '2' },
-  { sectionId: 'why-we-exist', label: 'Why We Exist', display: '3' },
+  { sectionId: 'partnership', label: 'Partnership', display: '3' },
+  { sectionId: 'why-we-exist', label: 'Why We Exist', display: '4' },
 ]
 
 const MENU_ITEMS = [
   { label: 'Introduction', stepIndex: 0, display: '0' },
   { label: 'Value Chain', stepIndex: 1, display: '1' },
   { label: 'Products', stepIndex: 6, display: '2' },
-  { label: 'Why We Exist', stepIndex: 7, display: '3' },
+  { label: 'Partnership', stepIndex: 7, display: '3' },
+  { label: 'Why We Exist', stepIndex: 8, display: '4' },
 ]
 
 interface NavigationBarProps {
