@@ -10,10 +10,10 @@ interface NavStep {
 
 const STEPS: NavStep[] = [
   { sectionId: 'hero', label: 'Introduction', display: '0' },
-  { sectionId: 'value-chain', label: 'Value Chain', display: '1.1', scrollPct: 0.06 },
-  { sectionId: 'value-chain', label: 'Energy transition', display: '1.2', scrollPct: 0.30 },
-  { sectionId: 'value-chain', label: 'Connecting to grid', display: '1.3', scrollPct: 0.50 },
-  { sectionId: 'value-chain', label: 'Digital growth', display: '1.4', scrollPct: 0.70 },
+  { sectionId: 'value-chain', label: 'Traditional grid', display: '1.1', scrollPct: 0.06 },
+  { sectionId: 'value-chain', label: 'Energy transformation', display: '1.2', scrollPct: 0.30 },
+  { sectionId: 'value-chain', label: 'Transmission bottleneck', display: '1.3', scrollPct: 0.50 },
+  { sectionId: 'value-chain', label: 'The AI race', display: '1.4', scrollPct: 0.70 },
   { sectionId: 'value-chain', label: "Symphony's role", display: '1.5', scrollPct: 0.90 },
   { sectionId: 'products', label: 'Products', display: '2' },
   { sectionId: 'partnership', label: 'Partnership', display: '3' },

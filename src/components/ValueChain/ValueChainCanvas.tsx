@@ -327,7 +327,7 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
         style={{ opacity: anim.titleCOpacity }}
       >
         <h2 className={`text-xl md:text-3xl font-bold mb-2 ${dark ? 'text-white' : 'text-gray-900'}`}>
-          The Connection Infrastructure Bottleneck
+          The Transmission Bottleneck
         </h2>
         <p className={`text-sm md:text-base leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
           Every new generator and large load requires dedicated HV connection infrastructure — substations, switchyards, and protection systems. Regulated network operators are stretched — the pipeline of work far exceeds their delivery capacity. Contestable connection infrastructure enables specialist third parties to deliver and own this critical infrastructure, creating a multi-billion dollar market.
@@ -340,7 +340,7 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
         style={{ opacity: anim.titleDOpacity }}
       >
         <h2 className={`text-xl md:text-3xl font-bold mb-2 ${dark ? 'text-white' : 'text-gray-900'}`}>
-          The AI and Data Centre Demand Explosion
+          The AI Race
         </h2>
         <p className={`text-sm md:text-base leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
           Global AI investment is driving unprecedented demand for data centre capacity in Australia. Each hyperscale facility requires 100–500 MW of dedicated grid connection — equivalent to a large wind farm. Australia's pipeline exceeds 10 GW of new load, creating a second wave of connection infrastructure demand alongside the energy transition.
@@ -353,7 +353,7 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
         style={{ opacity: anim.titleEOpacity }}
       >
         <h2 className={`text-xl md:text-3xl font-bold mb-2 ${dark ? 'text-white' : 'text-gray-900'}`}>
-          That's where <span className="text-accent">Symphony</span> comes in
+          <span className="text-accent">Symphony's</span> Role in the Energy Value Chain
         </h2>
         <p className={`text-sm md:text-base leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
           Symphony designs, builds, owns, and operates the connection infrastructure linking generators and loads to the grid. We provide certainty of delivery, de-risking projects for developers, investors, and network operators. Our integrated model spans the full lifecycle — feasibility through construction to 30-year asset management.
@@ -411,6 +411,20 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
 
           {/* Generation */}
           <ChainNode icon={<CoalPlant className={iconSize} />} label="Generator" x={p.coal.x} y={p.coal.y} category="generation" dark={dark} />
+
+          {/* Coal retirement annotation — appears in phase 1.2 */}
+          <motion.div
+            className="absolute flex flex-col justify-center pointer-events-none"
+            style={{
+              left: useTransform(p.coal.x, (v) => `calc(${v}% + 48px)`),
+              top: useTransform(p.coal.y, (v) => `calc(${v}% - 16px)`),
+              opacity: anim.coalRetirementOpacity,
+            }}
+          >
+            <span className="text-xs md:text-sm font-semibold text-red-400 leading-tight whitespace-nowrap">60% to close by 2030</span>
+            <span className={`text-[10px] md:text-xs leading-tight ${dark ? 'text-white/40' : 'text-gray-500'}`}>AEMO ISP, Step Change</span>
+          </motion.div>
+
           <ChainNode icon={<SolarPanel className={iconSize} />} label="Solar" x={p.solar.x} y={p.solar.y} opacity={anim.renewablesOpacity} category="generation" dark={dark} />
           <ChainNode icon={<WindTurbine className={iconSize} />} label="Wind" x={p.wind.x} y={p.wind.y} opacity={anim.renewablesOpacity} category="generation" dark={dark} />
           <ChainNode icon={<Battery className={iconSize} />} label="Battery" x={p.battery.x} y={p.battery.y} opacity={anim.renewablesOpacity} category="generation" dark={dark} />
