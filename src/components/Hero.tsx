@@ -36,7 +36,7 @@ export default function Hero({ dark }: { dark: boolean }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
         >
-          Powering Australia's Grid Transformation
+          Your Integrated HV Infrastructure Partner
         </motion.p>
 
         <motion.div
@@ -46,33 +46,18 @@ export default function Hero({ dark }: { dark: boolean }) {
           transition={{ duration: 1, delay: 0.6, ease: 'easeOut' }}
         />
 
-        {/* Key propositions */}
+        {/* Business overview subheading */}
         <motion.div
-          className="mt-10 max-w-xl mx-auto text-left"
+          className="mt-12"
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.9, ease: 'easeOut' }}
         >
-          <ul className={`space-y-2.5 text-sm md:text-base ${dark ? 'text-white/70' : 'text-gray-600'}`}>
-            <li className="flex gap-2.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" />
-              <span>Specialist designer, builder, and owner of high-voltage connection infrastructure</span>
-            </li>
-            <li className="flex gap-2.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" />
-              <span>Enabling the renewable energy and data centre investment pipeline across Australia</span>
-            </li>
-            <li className="flex gap-2.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" />
-              <span>Integrated delivery spanning the full project lifecycle — feasibility through 30-year operations</span>
-            </li>
-            <li className="flex gap-2.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" />
-              <span>Independent, third-party platform de-risking grid connection for developers and investors</span>
-            </li>
-          </ul>
-          <p className={`text-center mt-8 text-xs ${dark ? 'text-white/30' : 'text-gray-400'}`}>
-            Business Overview Prepared for Client A &middot; {dateStr}
+          <p className={`text-sm md:text-base font-semibold tracking-wide ${dark ? 'text-white/80' : 'text-gray-700'}`}>
+            Business Overview Prepared for Client A
+          </p>
+          <p className={`text-xs md:text-sm mt-1.5 font-light ${dark ? 'text-white/40' : 'text-gray-400'}`}>
+            {dateStr}
           </p>
         </motion.div>
       </div>

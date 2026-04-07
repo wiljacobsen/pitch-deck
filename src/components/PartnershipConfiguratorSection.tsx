@@ -13,10 +13,10 @@ export default function PartnershipConfiguratorSection({ dark }: { dark: boolean
           transition={{ duration: 0.6 }}
         >
           <h2 className={`text-2xl md:text-4xl font-bold mb-3 transition-colors duration-500 ${dark ? 'text-white' : 'text-gray-900'}`}>
-            Configure Your Engagement
+            Our partnership product
           </h2>
           <p className={`text-sm md:text-base transition-colors duration-500 ${dark ? 'text-white/40' : 'text-gray-400'}`}>
-            Select your technology and partnership model to see how Symphony integrates with your project
+            Configure your connection infrastructure engagement
           </p>
         </motion.div>
 
