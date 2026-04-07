@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { motion, type MotionValue, useTransform } from 'motion/react'
 import { CoalPlant, SolarPanel, WindTurbine, Battery, DataCentre, Transformer, PowerTower, Buildings } from '../../icons'
 import { useValueChainAnimation, type NodeId } from './useValueChainAnimation'
@@ -110,6 +111,12 @@ function ChainNode({ icon, label, x, y, opacity = 1, scale = 1, highlightProgres
   )
 }
 
+// ── Routing types ──────────────────────────────────────────────────
+// 'straight' = direct line, 'h-first' = horizontal then vertical 90° turn,
+// 'v-first' = vertical then horizontal 90° turn
+
+type Routing = 'straight' | 'h-first' | 'v-first'
+
 // ── ChainArrow ─────────────────────────────────────────────────────
 
 interface ArrowProps {
@@ -121,75 +128,159 @@ interface ArrowProps {
   id: string
   dark: boolean
   variant?: 'primary' | 'secondary'
+  routing?: Routing
 }
 
-function ChainArrow({ x1, y1, x2, y2, opacity = 1, id, dark, variant = 'primary' }: ArrowProps) {
+function ChainArrow({ x1, y1, x2, y2, opacity = 1, id, dark, variant = 'primary', routing = 'straight' }: ArrowProps) {
   const cx1 = useTransform(x1, (v) => `${v}%`)
   const cy1 = useTransform(y1, (v) => `${v}%`)
   const cx2 = useTransform(x2, (v) => `${v}%`)
   const cy2 = useTransform(y2, (v) => `${v}%`)
 
+  // Midpoint for 90° routing (always computed to avoid conditional hooks)
+  // h-first: mid = (x2, y1) — go horizontal first, then vertical
+  // v-first: mid = (x1, y2) — go vertical first, then horizontal
+  const cmx = useTransform(routing === 'v-first' ? x1 : x2, (v) => `${v}%`)
+  const cmy = useTransform(routing === 'v-first' ? y2 : y1, (v) => `${v}%`)
+
   const isPrimary = variant === 'primary'
   const lineColor = dark
-    ? (isPrimary ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.18)')
-    : (isPrimary ? 'rgba(0,0,0,0.18)' : 'rgba(0,0,0,0.12)')
+    ? (isPrimary ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.25)')
+    : (isPrimary ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.18)')
   const arrowColor = dark
-    ? (isPrimary ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.35)')
-    : (isPrimary ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.25)')
-  const strokeW = isPrimary ? 2 : 1.5
-  const dotColor = dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)'
+    ? (isPrimary ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.45)')
+    : (isPrimary ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.3)')
+  const strokeW = isPrimary ? 3 : 2.5
+  const dotColor = dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.10)'
 
   return (
     <motion.div className="absolute inset-0 pointer-events-none" style={{ opacity }}>
       <svg className="w-full h-full absolute inset-0" overflow="visible">
         <defs>
-          <marker id={`ar-${id}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-            <path d="M 0 1.5 L 9 5 L 0 8.5" fill="none" stroke={arrowColor} strokeWidth="1.5" />
+          <marker id={`ar-${id}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M 0 1.5 L 9 5 L 0 8.5" fill="none" stroke={arrowColor} strokeWidth="1.8" />
           </marker>
         </defs>
         {/* Terminal dots */}
-        <motion.circle cx={cx1} cy={cy1} r="2.5" fill={dotColor} />
-        <motion.circle cx={cx2} cy={cy2} r="2.5" fill={dotColor} />
-        {/* Line */}
-        <motion.line x1={cx1} y1={cy1} x2={cx2} y2={cy2} stroke={lineColor} strokeWidth={strokeW} markerEnd={`url(#ar-${id})`} />
+        <motion.circle cx={cx1} cy={cy1} r="3" fill={dotColor} />
+        <motion.circle cx={cx2} cy={cy2} r="3" fill={dotColor} />
+        {routing === 'straight' ? (
+          <motion.line x1={cx1} y1={cy1} x2={cx2} y2={cy2} stroke={lineColor} strokeWidth={strokeW} markerEnd={`url(#ar-${id})`} />
+        ) : (
+          <>
+            <motion.line x1={cx1} y1={cy1} x2={cmx} y2={cmy} stroke={lineColor} strokeWidth={strokeW} />
+            <motion.circle cx={cmx} cy={cmy} r="2" fill={dotColor} />
+            <motion.line x1={cmx} y1={cmy} x2={cx2} y2={cy2} stroke={lineColor} strokeWidth={strokeW} markerEnd={`url(#ar-${id})`} />
+          </>
+        )}
       </svg>
     </motion.div>
   )
 }
 
-// ── ElectronPath ───────────────────────────────────────────────────
+// ── ElectronDots (rAF-based, follows paths including 90° turns) ───
 
-let electronPathCounter = 0
+let electronIdCounter = 0
 
-function ElectronPath({ x1, y1, x2, y2, opacity = 1, delay }: { x1: MotionValue<number>; y1: MotionValue<number>; x2: MotionValue<number>; y2: MotionValue<number>; opacity?: MotionValue<number> | number; delay: number }) {
-  const sx = useTransform(x1, (v) => `${v}%`)
-  const sy = useTransform(y1, (v) => `${v}%`)
-  const ex = useTransform(x2, (v) => `${v}%`)
-  const ey = useTransform(y2, (v) => `${v}%`)
-  const filterId = `glow-${electronPathCounter++}`
+function ElectronDots({ x1, y1, x2, y2, opacity = 1, delay, routing = 'straight' }: {
+  x1: MotionValue<number>; y1: MotionValue<number>
+  x2: MotionValue<number>; y2: MotionValue<number>
+  opacity?: MotionValue<number> | number
+  delay: number
+  routing?: Routing
+}) {
+  const gRef = useRef<SVGGElement>(null)
+  const filterIdRef = useRef(`edot-${electronIdCounter++}`)
+  const COUNT = 3
+  const SPACING = 1 // seconds between electron groups
+  const DUR = 3 // seconds per full traversal
+
+  useEffect(() => {
+    let raf: number
+    const start = performance.now()
+
+    function tick(now: number) {
+      const g = gRef.current
+      if (!g) { raf = requestAnimationFrame(tick); return }
+
+      // Build path from current MotionValue positions
+      const ax = x1.get(), ay = y1.get(), bx = x2.get(), by = y2.get()
+      let pts: { x: number; y: number }[]
+      if (routing === 'h-first') {
+        pts = [{ x: ax, y: ay }, { x: bx, y: ay }, { x: bx, y: by }]
+      } else if (routing === 'v-first') {
+        pts = [{ x: ax, y: ay }, { x: ax, y: by }, { x: bx, y: by }]
+      } else {
+        pts = [{ x: ax, y: ay }, { x: bx, y: by }]
+      }
+
+      // Segment lengths
+      const segLens: number[] = []
+      let total = 0
+      for (let i = 1; i < pts.length; i++) {
+        const len = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y)
+        segLens.push(len)
+        total += len
+      }
+      if (total < 0.5) { raf = requestAnimationFrame(tick); return }
+
+      const elapsed = (now - start) / 1000
+      const circles = g.children
+
+      for (let d = 0; d < COUNT * 2; d++) {
+        const isTrail = d % 2 === 1
+        const dotDelay = delay + Math.floor(d / 2) * SPACING + (isTrail ? 0.15 : 0)
+        const raw = ((elapsed - dotDelay) % DUR + DUR) % DUR
+        const t = raw / DUR
+
+        // Position along multi-segment path
+        const dist = t * total
+        let acc = 0, px = pts[0].x, py = pts[0].y
+        for (let s = 0; s < segLens.length; s++) {
+          if (acc + segLens[s] >= dist) {
+            const segT = segLens[s] > 0 ? (dist - acc) / segLens[s] : 0
+            px = pts[s].x + (pts[s + 1].x - pts[s].x) * segT
+            py = pts[s].y + (pts[s + 1].y - pts[s].y) * segT
+            break
+          }
+          acc += segLens[s]
+          if (s === segLens.length - 1) { px = pts[pts.length - 1].x; py = pts[pts.length - 1].y }
+        }
+
+        const el = circles[d] as SVGCircleElement | undefined
+        if (!el) continue
+        el.setAttribute('cx', `${px}%`)
+        el.setAttribute('cy', `${py}%`)
+        // Fade in/out at path edges
+        const fade = t < 0.08 ? t / 0.08 : t > 0.92 ? (1 - t) / 0.08 : 1
+        const base = isTrail ? 0.35 : 0.9
+        el.setAttribute('opacity', `${fade * base}`)
+      }
+
+      raf = requestAnimationFrame(tick)
+    }
+
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+    // MotionValues are stable refs — safe to omit from deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <motion.div className="absolute inset-0 pointer-events-none" style={{ opacity }}>
       <svg className="w-full h-full absolute inset-0" overflow="visible">
         <defs>
-          <filter id={filterId}><feGaussianBlur stdDeviation="3" result="c" /><feMerge><feMergeNode in="c" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+          <filter id={filterIdRef.current}>
+            <feGaussianBlur stdDeviation="3" result="c" />
+            <feMerge><feMergeNode in="c" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
         </defs>
-        {[0, 1, 2].map((i) => (
-          <g key={i}>
-            {/* Trailing particle */}
-            <circle r="3" fill="#3B82F6" opacity="0.3" filter={`url(#${filterId})`}>
-              <animate attributeName="cx" values={`${sx.get()};${ex.get()}`} dur="3s" begin={`${delay + i * 1 + 0.2}s`} repeatCount="indefinite" />
-              <animate attributeName="cy" values={`${sy.get()};${ey.get()}`} dur="3s" begin={`${delay + i * 1 + 0.2}s`} repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0;0.35;0.35;0" dur="3s" begin={`${delay + i * 1 + 0.2}s`} repeatCount="indefinite" />
-            </circle>
-            {/* Main particle */}
-            <circle r="3.5" fill="#3B82F6" filter={`url(#${filterId})`}>
-              <animate attributeName="cx" values={`${sx.get()};${ex.get()}`} dur="3s" begin={`${delay + i * 1}s`} repeatCount="indefinite" />
-              <animate attributeName="cy" values={`${sy.get()};${ey.get()}`} dur="3s" begin={`${delay + i * 1}s`} repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0;0.9;0.9;0" dur="3s" begin={`${delay + i * 1}s`} repeatCount="indefinite" />
-            </circle>
-          </g>
-        ))}
+        <g ref={gRef}>
+          {Array.from({ length: COUNT }).flatMap((_, i) => [
+            <circle key={`m${i}`} r="3.5" fill="#3B82F6" filter={`url(#${filterIdRef.current})`} opacity="0" />,
+            <circle key={`t${i}`} r="3" fill="#3B82F6" filter={`url(#${filterIdRef.current})`} opacity="0" />,
+          ])}
+        </g>
       </svg>
     </motion.div>
   )
@@ -269,48 +360,48 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
         </p>
       </motion.div>
 
-      {/* Infographic area — below titles */}
-      <div className="absolute top-[24%] left-0 right-0 bottom-[4%]">
+      {/* Infographic area — below titles, with breathing room */}
+      <div className="absolute top-[26%] left-[3%] right-[3%] bottom-[5%]">
         <div className="relative w-full h-full">
 
-          {/* ===== State A arrows: Coal → Transmission → Distribution → Load ===== */}
+          {/* ===== State A arrows: Coal → Transmission → Distribution → Load (straight horizontal) ===== */}
           <ChainArrow id="a0" x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.stateAFade} dark={dark} />
           <ChainArrow id="a1" x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.stateAFade} dark={dark} />
           <ChainArrow id="a2" x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.stateAFade} dark={dark} />
 
           {/* State A electrons */}
-          <ElectronPath x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.stateAFade} delay={0} />
-          <ElectronPath x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.stateAFade} delay={0.5} />
-          <ElectronPath x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.stateAFade} delay={1} />
+          <ElectronDots x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.stateAFade} delay={0} />
+          <ElectronDots x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.stateAFade} delay={0.5} />
+          <ElectronDots x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.stateAFade} delay={1} />
 
-          {/* ===== Core chain arrows: thermal→trans, trans→dist→load (from phase 1.2) ===== */}
-          <ChainArrow id="ct" x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.coreChainArrows} dark={dark} />
+          {/* ===== Core chain arrows (from phase 1.2): thermal→trans with 90° turn, trans→dist→load straight ===== */}
+          <ChainArrow id="ct" x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.coreChainArrows} dark={dark} routing="h-first" />
           <ChainArrow id="c0" x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.coreChainArrows} dark={dark} />
           <ChainArrow id="c1" x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.coreChainArrows} dark={dark} />
 
           {/* Core chain electrons */}
-          <ElectronPath x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.coreChainArrows} delay={0} />
-          <ElectronPath x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.coreChainArrows} delay={0.3} />
-          <ElectronPath x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.coreChainArrows} delay={0.8} />
+          <ElectronDots x1={p.coal.x} y1={p.coal.y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.coreChainArrows} delay={0} routing="h-first" />
+          <ElectronDots x1={p.transmission.x} y1={p.transmission.y} x2={p.distribution.x} y2={p.distribution.y} opacity={anim.coreChainArrows} delay={0.3} />
+          <ElectronDots x1={p.distribution.x} y1={p.distribution.y} x2={p.load.x} y2={p.load.y} opacity={anim.coreChainArrows} delay={0.8} />
 
-          {/* ===== Generator → NCI → Transmission arrows (phase 1.3) ===== */}
+          {/* ===== Generator → NCI (straight) → Transmission (90° h-first turn) arrows (phase 1.3) ===== */}
           {(['solar', 'wind', 'battery'] as const).map((gen, i) => {
             const nci = `nci${gen.charAt(0).toUpperCase() + gen.slice(1)}` as NodeId
             return (
               <span key={gen}>
                 <ChainArrow id={`g${i}`} x1={p[gen].x} y1={p[gen].y} x2={p[nci].x} y2={p[nci].y} opacity={anim.connectionArrows} dark={dark} variant="secondary" />
-                <ChainArrow id={`n${i}`} x1={p[nci].x} y1={p[nci].y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.connectionArrows} dark={dark} variant="secondary" />
-                <ElectronPath x1={p[gen].x} y1={p[gen].y} x2={p[nci].x} y2={p[nci].y} opacity={anim.connectionArrows} delay={i * 0.4} />
-                <ElectronPath x1={p[nci].x} y1={p[nci].y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.connectionArrows} delay={i * 0.4 + 0.2} />
+                <ChainArrow id={`n${i}`} x1={p[nci].x} y1={p[nci].y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.connectionArrows} dark={dark} variant="secondary" routing="h-first" />
+                <ElectronDots x1={p[gen].x} y1={p[gen].y} x2={p[nci].x} y2={p[nci].y} opacity={anim.connectionArrows} delay={i * 0.4} />
+                <ElectronDots x1={p[nci].x} y1={p[nci].y} x2={p.transmission.x} y2={p.transmission.y} opacity={anim.connectionArrows} delay={i * 0.4 + 0.2} routing="h-first" />
               </span>
             )
           })}
 
-          {/* ===== DC arrows: transmission → nciDC → dataCentre (phase 1.4) ===== */}
-          <ChainArrow id="dc0" x1={p.transmission.x} y1={p.transmission.y} x2={p.nciDataCentre.x} y2={p.nciDataCentre.y} opacity={anim.dcArrows} dark={dark} variant="secondary" />
+          {/* ===== DC arrows: transmission → nciDC (90° v-first turn) → dataCentre (straight) (phase 1.4) ===== */}
+          <ChainArrow id="dc0" x1={p.transmission.x} y1={p.transmission.y} x2={p.nciDataCentre.x} y2={p.nciDataCentre.y} opacity={anim.dcArrows} dark={dark} variant="secondary" routing="v-first" />
           <ChainArrow id="dc1" x1={p.nciDataCentre.x} y1={p.nciDataCentre.y} x2={p.dataCentre.x} y2={p.dataCentre.y} opacity={anim.dcArrows} dark={dark} variant="secondary" />
-          <ElectronPath x1={p.transmission.x} y1={p.transmission.y} x2={p.nciDataCentre.x} y2={p.nciDataCentre.y} opacity={anim.dcArrows} delay={0.1} />
-          <ElectronPath x1={p.nciDataCentre.x} y1={p.nciDataCentre.y} x2={p.dataCentre.x} y2={p.dataCentre.y} opacity={anim.dcArrows} delay={0.4} />
+          <ElectronDots x1={p.transmission.x} y1={p.transmission.y} x2={p.nciDataCentre.x} y2={p.nciDataCentre.y} opacity={anim.dcArrows} delay={0.1} routing="v-first" />
+          <ElectronDots x1={p.nciDataCentre.x} y1={p.nciDataCentre.y} x2={p.dataCentre.x} y2={p.dataCentre.y} opacity={anim.dcArrows} delay={0.4} />
 
           {/* ===== NODES ===== */}
 
