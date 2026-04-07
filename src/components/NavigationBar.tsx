@@ -5,16 +5,16 @@ interface NavStep {
   sectionId: string
   label: string
   display: string
-  scrollPct?: number
+  vcStep?: number
 }
 
 const STEPS: NavStep[] = [
   { sectionId: 'hero', label: 'Introduction', display: '0' },
-  { sectionId: 'value-chain', label: 'Traditional grid', display: '1.1', scrollPct: 0.06 },
-  { sectionId: 'value-chain', label: 'Energy transformation', display: '1.2', scrollPct: 0.30 },
-  { sectionId: 'value-chain', label: 'Transmission bottleneck', display: '1.3', scrollPct: 0.50 },
-  { sectionId: 'value-chain', label: 'The AI race', display: '1.4', scrollPct: 0.70 },
-  { sectionId: 'value-chain', label: "Symphony's role", display: '1.5', scrollPct: 0.90 },
+  { sectionId: 'value-chain', label: 'Traditional grid', display: '1.1', vcStep: 0 },
+  { sectionId: 'value-chain', label: 'Energy transformation', display: '1.2', vcStep: 1 },
+  { sectionId: 'value-chain', label: 'Transmission bottleneck', display: '1.3', vcStep: 2 },
+  { sectionId: 'value-chain', label: 'The AI race', display: '1.4', vcStep: 3 },
+  { sectionId: 'value-chain', label: "Symphony's role", display: '1.5', vcStep: 4 },
   { sectionId: 'products', label: 'Products', display: '2' },
   { sectionId: 'partnership', label: 'Partnership', display: '3' },
   { sectionId: 'why-we-exist', label: 'Why We Exist', display: '4' },
@@ -42,24 +42,18 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
       const scrollY = window.scrollY
       const vh = window.innerHeight
 
-      // Check value-chain sub-steps
+      // Check if value-chain section is in view
       const vcEl = document.getElementById('value-chain')
       if (vcEl) {
         const vcTop = vcEl.offsetTop
-        const vcHeight = vcEl.scrollHeight
-        const vcScrollRange = vcHeight - vh
+        const vcBottom = vcTop + vcEl.offsetHeight
 
-        if (scrollY >= vcTop && scrollY < vcTop + vcHeight - vh * 0.5) {
-          const pct = (scrollY - vcTop) / vcScrollRange
-          const vcSteps = STEPS.filter((s) => s.sectionId === 'value-chain')
-          let bestIdx = 1
-          for (let i = vcSteps.length - 1; i >= 0; i--) {
-            if (pct >= (vcSteps[i].scrollPct! - 0.06)) {
-              bestIdx = STEPS.indexOf(vcSteps[i])
-              break
-            }
-          }
-          setCurrent(bestIdx)
+        if (scrollY + vh * 0.5 >= vcTop && scrollY < vcBottom - vh * 0.5) {
+          // Read the current step from the DOM attribute
+          const stepAttr = vcEl.getAttribute('data-value-chain-step')
+          const vcStep = stepAttr !== null ? parseInt(stepAttr, 10) : 0
+          // Map vcStep (0-4) to STEPS index (1-5)
+          setCurrent(1 + vcStep)
           return
         }
       }
@@ -68,7 +62,7 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
       const scrollCheck = scrollY + vh / 3
       for (let i = STEPS.length - 1; i >= 0; i--) {
         const step = STEPS[i]
-        if (step.scrollPct !== undefined) continue
+        if (step.vcStep !== undefined) continue
         const el = document.getElementById(step.sectionId)
         if (el && el.offsetTop <= scrollCheck) {
           setCurrent(i)
@@ -78,9 +72,20 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
       setCurrent(0)
     }
 
+    // Also listen for step changes via a MutationObserver on the value-chain element
+    const vcEl = document.getElementById('value-chain')
+    let observer: MutationObserver | undefined
+    if (vcEl) {
+      observer = new MutationObserver(() => handleScroll())
+      observer.observe(vcEl, { attributes: true, attributeFilter: ['data-value-chain-step'] })
+    }
+
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
-    return () => window.removeEventListener('scroll', handleScroll)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      observer?.disconnect()
+    }
   }, [])
 
   const scrollTo = useCallback((stepIndex: number) => {
@@ -88,16 +93,9 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
     const el = document.getElementById(step.sectionId)
     if (!el) return
 
-    let targetScroll: number
-    if (step.scrollPct !== undefined) {
-      const sectionHeight = el.scrollHeight
-      const scrollRange = sectionHeight - window.innerHeight
-      targetScroll = el.offsetTop + scrollRange * step.scrollPct
-    } else {
-      targetScroll = el.offsetTop
-    }
+    // For value-chain steps, scroll to the section then trigger the step animation
+    const targetScroll = el.offsetTop
 
-    // Slow, deliberate eased scroll for nav button clicks
     const start = window.scrollY
     const distance = targetScroll - start
     const duration = Math.min(1800, Math.max(800, Math.abs(distance) * 0.4))
@@ -112,9 +110,21 @@ export default function NavigationBar({ dark, onToggleTheme }: NavigationBarProp
       const elapsed = timestamp - startTime
       const progress = Math.min(elapsed / duration, 1)
       window.scrollTo(0, start + distance * easeInOutCubic(progress))
-      if (progress < 1) requestAnimationFrame(step2)
+      if (progress < 1) {
+        requestAnimationFrame(step2)
+      } else if (step.vcStep !== undefined) {
+        // After scrolling to the section, trigger the value chain step
+        const vcEl = document.querySelector('[data-value-chain-step]') as HTMLElement & { __goToStep?: (s: number) => void }
+        vcEl?.__goToStep?.(step.vcStep)
+      }
     }
     requestAnimationFrame(step2)
+
+    // If already at the section, trigger step immediately
+    if (Math.abs(distance) < 10 && step.vcStep !== undefined) {
+      const vcEl = document.querySelector('[data-value-chain-step]') as HTMLElement & { __goToStep?: (s: number) => void }
+      vcEl?.__goToStep?.(step.vcStep)
+    }
 
     setMenuOpen(false)
   }, [])

@@ -16,9 +16,7 @@ export default function App() {
       <div id="hero">
         <Hero dark={dark} />
       </div>
-      <div id="value-chain">
-        <ValueChainSection dark={dark} />
-      </div>
+      <ValueChainSection dark={dark} />
       <div id="products">
         <ProductsGrid dark={dark} />
       </div>
