@@ -14,9 +14,31 @@ export type ScopePhase =
 
 export type CommercialType = 'annualFee' | 'lumpSum' | 'servicesFee' | 'clientCapex' | 'none'
 
+export type ConnectionVoltage = '33' | '66' | '110' | '132' | '220' | '275' | '330' | '400' | '500'
+
+export type OtherBOPOption = 'internalReticulation' | 'bessBOP' | 'switchgear' | 'protectionSystems'
+
+export type WizardStep = 0 | 1 | 2
+
 export interface ScopeState {
   phase: ScopePhase
   owner: ScopeOwner
+}
+
+export interface InfrastructureConfig {
+  hasSubstation: boolean
+  hasSwitchyard: boolean
+  hasTransmissionLine: boolean
+  transmissionKm: number | null
+  transmissionVoltage: ConnectionVoltage | null
+  connectionVoltage: ConnectionVoltage | null
+  otherBOP: OtherBOPOption[]
+}
+
+export interface ProjectConfig {
+  technology: Technology
+  projectSizeMW: number | null
+  infrastructure: InfrastructureConfig
 }
 
 export interface ModelDefinition {
@@ -34,7 +56,7 @@ export interface ModelDefinition {
 export interface PartnershipConfiguratorProps {
   defaultTechnology?: Technology
   defaultModel?: ModelId
-  onChange?: (config: { technology: string; model: string; scopes: ScopeState[] }) => void
+  onChange?: (config: { technology: string; model: string; scopes: ScopeState[]; project?: ProjectConfig }) => void
   compact?: boolean
   theme?: 'light' | 'dark' | 'auto'
 }

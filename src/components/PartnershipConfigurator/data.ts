@@ -1,4 +1,4 @@
-import type { Technology, ModelDefinition, ScopePhase, ScopeOwner, CommercialType } from './types'
+import type { Technology, ModelDefinition, ScopePhase, ScopeOwner, CommercialType, ConnectionVoltage, OtherBOPOption, InfrastructureConfig } from './types'
 
 // ── Phase labels (display order) ──────────────────────────────────
 
@@ -136,4 +136,39 @@ export const OWNER_LABELS: Record<ScopeOwner, string> = {
   symphony: 'Symphony',
   client: 'Client',
   consulting: 'Consulting',
+}
+
+// ── Connection voltages ──────────────────────────────────────────
+
+export const CONNECTION_VOLTAGES: { value: ConnectionVoltage; label: string }[] = [
+  { value: '33', label: '33 kV' },
+  { value: '66', label: '66 kV' },
+  { value: '110', label: '110 kV' },
+  { value: '132', label: '132 kV' },
+  { value: '220', label: '220 kV' },
+  { value: '275', label: '275 kV' },
+  { value: '330', label: '330 kV' },
+  { value: '400', label: '400 kV' },
+  { value: '500', label: '500 kV' },
+]
+
+// ── Other BOP options ────────────────────────────────────────────
+
+export const OTHER_BOP_OPTIONS: { id: OtherBOPOption; label: string; techs: Technology[] }[] = [
+  { id: 'internalReticulation', label: 'Internal reticulation (windfarm)', techs: ['wind'] },
+  { id: 'bessBOP', label: 'BESS balance of plant', techs: ['bess'] },
+  { id: 'switchgear', label: 'Switchgear', techs: ['wind', 'bess', 'solar', 'datacentre', 'gpg'] },
+  { id: 'protectionSystems', label: 'Protection systems', techs: ['wind', 'bess', 'solar', 'datacentre', 'gpg'] },
+]
+
+// ── Default infrastructure config ────────────────────────────────
+
+export const DEFAULT_INFRASTRUCTURE: InfrastructureConfig = {
+  hasSubstation: false,
+  hasSwitchyard: false,
+  hasTransmissionLine: false,
+  transmissionKm: null,
+  transmissionVoltage: null,
+  connectionVoltage: null,
+  otherBOP: [],
 }
