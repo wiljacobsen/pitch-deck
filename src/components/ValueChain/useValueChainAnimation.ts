@@ -19,36 +19,36 @@ interface NodePosition {
   y: number
 }
 
-// State A: Coal → Transmission → Distribution → Load (simple linear)
+// State A: Coal → Transmission → Distribution → Load (simple linear, spread wide)
 const STATE_A: Record<NodeId, NodePosition> = {
-  coal:           { x: 15, y: 50 },
-  solar:          { x: 15, y: 50 },
-  wind:           { x: 15, y: 50 },
-  battery:        { x: 15, y: 50 },
-  nciSolar:       { x: 15, y: 50 },
-  nciWind:        { x: 15, y: 50 },
-  nciBattery:     { x: 15, y: 50 },
-  transmission:   { x: 40, y: 50 },
-  distribution:   { x: 65, y: 50 },
+  coal:           { x: 10, y: 50 },
+  solar:          { x: 10, y: 50 },
+  wind:           { x: 10, y: 50 },
+  battery:        { x: 10, y: 50 },
+  nciSolar:       { x: 10, y: 50 },
+  nciWind:        { x: 10, y: 50 },
+  nciBattery:     { x: 10, y: 50 },
+  transmission:   { x: 37, y: 50 },
+  distribution:   { x: 63, y: 50 },
   load:           { x: 90, y: 50 },
-  dataCentre:     { x: 74, y: 68 },
-  nciDataCentre:  { x: 58, y: 68 },
+  dataCentre:     { x: 72, y: 68 },
+  nciDataCentre:  { x: 56, y: 68 },
 }
 
 // State B: Thermal stays at top, renewables fan out below — 4 rows
 const STATE_B: Record<NodeId, NodePosition> = {
-  coal:           { x: 10, y: 12 },
-  solar:          { x: 10, y: 34 },
-  wind:           { x: 10, y: 56 },
-  battery:        { x: 10, y: 78 },
-  nciSolar:       { x: 26, y: 34 },
-  nciWind:        { x: 26, y: 56 },
-  nciBattery:     { x: 26, y: 78 },
-  transmission:   { x: 46, y: 44 },
-  distribution:   { x: 68, y: 44 },
+  coal:           { x: 8, y: 12 },
+  solar:          { x: 8, y: 34 },
+  wind:           { x: 8, y: 56 },
+  battery:        { x: 8, y: 78 },
+  nciSolar:       { x: 24, y: 34 },
+  nciWind:        { x: 24, y: 56 },
+  nciBattery:     { x: 24, y: 78 },
+  transmission:   { x: 44, y: 44 },
+  distribution:   { x: 66, y: 44 },
   load:           { x: 90, y: 44 },
-  dataCentre:     { x: 74, y: 72 },
-  nciDataCentre:  { x: 58, y: 72 },
+  dataCentre:     { x: 72, y: 72 },
+  nciDataCentre:  { x: 56, y: 72 },
 }
 
 const ALL_NODES: NodeId[] = [

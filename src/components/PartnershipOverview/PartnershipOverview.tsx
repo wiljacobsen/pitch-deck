@@ -141,10 +141,10 @@ export default function PartnershipOverview({ dark }: { dark: boolean }) {
           transition={{ duration: 0.6 }}
         >
           <h2 className={`text-2xl md:text-4xl font-bold mb-3 transition-colors duration-500 ${dark ? 'text-white' : 'text-gray-900'}`}>
-            Partnership models
+            Flexible Partnership Models
           </h2>
           <p className={`text-sm md:text-base transition-colors duration-500 ${dark ? 'text-white/40' : 'text-gray-400'}`}>
-            Three ways to engage across the project lifecycle
+            Choose your level of involvement — from early advisory through to full-scope delivery and ownership
           </p>
         </motion.div>
 

@@ -56,8 +56,8 @@ export default function ProductsGrid({ dark }: { dark: boolean }) {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className={`text-2xl md:text-4xl font-bold mb-3 transition-colors duration-500 ${dark ? 'text-white' : 'text-gray-900'}`}>Our Products</h2>
-          <p className={`text-sm md:text-base transition-colors duration-500 ${dark ? 'text-white/40' : 'text-gray-400'}`}>End-to-end connection solutions for every asset class</p>
+          <h2 className={`text-2xl md:text-4xl font-bold mb-3 transition-colors duration-500 ${dark ? 'text-white' : 'text-gray-900'}`}>Connection Solutions for Every Asset Class</h2>
+          <p className={`text-sm md:text-base transition-colors duration-500 ${dark ? 'text-white/40' : 'text-gray-400'}`}>From feasibility to energisation — we deliver the infrastructure that connects projects to the grid</p>
         </motion.div>
 
         <motion.div

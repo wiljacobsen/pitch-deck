@@ -118,10 +118,10 @@ export default function WhyWeExist({ dark }: { dark: boolean }) {
           transition={{ duration: 0.5 }}
         >
           <h2 className={`text-2xl md:text-3xl font-bold mb-2 transition-colors duration-500 ${dark ? 'text-white' : 'text-gray-900'}`}>
-            Why Do We Exist?
+            Why the Market Needs Symphony
           </h2>
           <p className={`text-sm md:text-base transition-colors duration-500 max-w-3xl ${dark ? 'text-white/60' : 'text-gray-500'}`}>
-            Future project connections hinge on execution capability and capacity.{' '}
+            The energy transition demands a step-change in grid connection capacity.{' '}
             <span className="text-accent font-semibold">Symphony provides certainty of delivery for our partners.</span>
           </p>
         </motion.div>
