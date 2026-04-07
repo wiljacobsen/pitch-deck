@@ -10,6 +10,15 @@
   --color-cat-conn: #3B82F6;
   --color-cat-network: #64748B;
   --color-cat-load: #10B981;
+  --color-sym-blue: #185FA5;
+  --color-sym-blue-light: #E6F1FB;
+  --color-sym-blue-dark: #0C447C;
+  --color-sym-amber: #854F0B;
+  --color-sym-amber-light: #FAEEDA;
+  --color-sym-amber-dark: #412402;
+  --color-sym-gray: #B4B2A9;
+  --color-sym-gray-light: #F1EFE8;
+  --color-sym-gray-dark: #2C2C2A;
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 }
 
