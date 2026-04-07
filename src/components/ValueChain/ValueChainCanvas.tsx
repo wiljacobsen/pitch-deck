@@ -319,22 +319,6 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
         <p className={`text-sm md:text-base leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
           Australia's ageing coal fleet is rapidly retiring — over 60% of capacity scheduled to close by 2035. Renewables are the cheapest and fastest replacement: distributed wind, solar, and battery storage. AEMO's Integrated System Plan projects massive new capacity to meet demand.
         </p>
-        {/* AEMO ISP headline figures */}
-        <div className="flex gap-4 md:gap-6 mt-3">
-          <div className="text-center">
-            <span className="text-base md:text-xl font-bold text-amber-400">~68 GW</span>
-            <span className={`text-[10px] md:text-xs block ${dark ? 'text-white/50' : 'text-gray-500'}`}>Solar by 2050</span>
-          </div>
-          <div className="text-center">
-            <span className="text-base md:text-xl font-bold text-sky-400">~32 GW</span>
-            <span className={`text-[10px] md:text-xs block ${dark ? 'text-white/50' : 'text-gray-500'}`}>Wind by 2050</span>
-          </div>
-          <div className="text-center">
-            <span className="text-base md:text-xl font-bold text-emerald-400">~19 GW</span>
-            <span className={`text-[10px] md:text-xs block ${dark ? 'text-white/50' : 'text-gray-500'}`}>Storage by 2050</span>
-          </div>
-        </div>
-        <span className={`text-[9px] mt-1 block ${dark ? 'text-white/30' : 'text-gray-400'}`}>Source: AEMO 2024 ISP, Step Change scenario</span>
       </motion.div>
 
       {/* ===== TITLE C: Connecting to grid ===== */}
@@ -430,6 +414,26 @@ export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYPro
           <ChainNode icon={<SolarPanel className={iconSize} />} label="Solar" x={p.solar.x} y={p.solar.y} opacity={anim.renewablesOpacity} category="generation" dark={dark} />
           <ChainNode icon={<WindTurbine className={iconSize} />} label="Wind" x={p.wind.x} y={p.wind.y} opacity={anim.renewablesOpacity} category="generation" dark={dark} />
           <ChainNode icon={<Battery className={iconSize} />} label="Battery" x={p.battery.x} y={p.battery.y} opacity={anim.renewablesOpacity} category="generation" dark={dark} />
+
+          {/* AEMO ISP GW labels — positioned to the right of each renewable icon */}
+          {([
+            { node: 'solar' as const, gw: '~68 GW', label: 'Solar by 2050', color: 'text-amber-400' },
+            { node: 'wind' as const, gw: '~32 GW', label: 'Wind by 2050', color: 'text-sky-400' },
+            { node: 'battery' as const, gw: '~19 GW', label: 'Storage by 2050', color: 'text-emerald-400' },
+          ]).map((isp) => (
+            <motion.div
+              key={isp.node}
+              className="absolute flex flex-col justify-center pointer-events-none"
+              style={{
+                left: useTransform(p[isp.node].x, (v) => `calc(${v}% + 48px)`),
+                top: useTransform(p[isp.node].y, (v) => `calc(${v}% - 20px)`),
+                opacity: anim.ispLabelsOpacity,
+              }}
+            >
+              <span className={`text-base md:text-lg font-bold leading-tight ${isp.color}`}>{isp.gw}</span>
+              <span className={`text-[10px] md:text-xs leading-tight ${dark ? 'text-white/50' : 'text-gray-500'}`}>{isp.label}</span>
+            </motion.div>
+          ))}
 
           {/* Connection Infrastructure — highlight in phase 1.5 */}
           <ChainNode icon={<Transformer className={iconSize} />} label="Connection Infra" x={p.nciSolar.x} y={p.nciSolar.y} opacity={anim.nciOpacity} scale={anim.nciScale} highlightProgress={anim.nciHighlight} category="connection" dark={dark} />

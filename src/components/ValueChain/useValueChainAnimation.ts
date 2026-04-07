@@ -127,6 +127,9 @@ export function useValueChainAnimation(scrollYProgress: MotionValue<number>) {
   // NCI highlight (neutral → accent blue) = Symphony reveal (phase 1.5)
   const nciHighlight = useTransform(scrollYProgress, [0.80, 0.90], [0, 1])
 
+  // ISP GW labels next to renewable icons — visible in phase 1.2, fade out when NCI appears
+  const ispLabelsOpacity = useTransform(scrollYProgress, [0.19, 0.26, 0.38, 0.46], [0, 1, 1, 0])
+
   return {
     positions,
     titleAOpacity,
@@ -144,5 +147,6 @@ export function useValueChainAnimation(scrollYProgress: MotionValue<number>) {
     dcScale,
     dcArrows,
     nciHighlight,
+    ispLabelsOpacity,
   }
 }
