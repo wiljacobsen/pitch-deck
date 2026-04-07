@@ -1,11 +1,23 @@
 import { motion } from 'motion/react'
-import AnimatedGrid from '../ui/AnimatedGrid'
 import ScrollIndicator from './ScrollIndicator'
+import SymphonyWaves from '../ui/SymphonyWaves'
 
 export default function Hero({ dark }: { dark: boolean }) {
+  // Format today's date as "7th April 2026" style
+  const now = new Date()
+  const day = now.getDate()
+  const suffix = day === 1 || day === 21 || day === 31 ? 'st'
+    : day === 2 || day === 22 ? 'nd'
+    : day === 3 || day === 23 ? 'rd'
+    : 'th'
+  const month = now.toLocaleString('en-GB', { month: 'long' })
+  const year = now.getFullYear()
+  const dateStr = `${day}${suffix} ${month} ${year}`
+
   return (
     <section className={`relative h-screen flex items-center justify-center overflow-hidden transition-colors duration-500 ${dark ? 'bg-navy' : 'bg-white'}`}>
-      <AnimatedGrid />
+      {/* Animated wave background */}
+      <SymphonyWaves dark={dark} />
 
       <div className="relative z-10 text-center px-6">
         <motion.img
@@ -24,7 +36,7 @@ export default function Hero({ dark }: { dark: boolean }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
         >
-          Network Connection Infrastructure
+          Integrated HV Infrastructure Partner
         </motion.p>
 
         <motion.div
@@ -33,6 +45,24 @@ export default function Hero({ dark }: { dark: boolean }) {
           animate={{ scaleX: 1 }}
           transition={{ duration: 1, delay: 0.6, ease: 'easeOut' }}
         />
+
+        {/* Business overview subheading */}
+        <motion.div
+          className="mt-12"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.9, ease: 'easeOut' }}
+        >
+          <p className={`text-sm md:text-base font-semibold tracking-wide ${dark ? 'text-white/80' : 'text-gray-700'}`}>
+            Business Overview
+          </p>
+          <p className={`text-sm md:text-base font-semibold tracking-wide ${dark ? 'text-white/80' : 'text-gray-700'}`}>
+            Prepared for Client A
+          </p>
+          <p className={`text-xs md:text-sm mt-1.5 font-light ${dark ? 'text-white/40' : 'text-gray-400'}`}>
+            {dateStr}
+          </p>
+        </motion.div>
       </div>
 
       <ScrollIndicator dark={dark} />
