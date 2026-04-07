@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Hero from './components/Hero'
 import ValueChainSection from './components/ValueChain/ValueChainSection'
 import ProductsGrid from './components/ProductsGrid'
+import PartnershipOverview from './components/PartnershipOverview'
 import PartnershipConfiguratorSection from './components/PartnershipConfiguratorSection'
 import WhyWeExist from './components/WhyWeExist'
 import NavigationBar from './components/NavigationBar'
@@ -22,6 +23,7 @@ export default function App() {
         <ProductsGrid dark={dark} />
       </div>
       <div id="partnership">
+        <PartnershipOverview dark={dark} />
         <PartnershipConfiguratorSection dark={dark} />
       </div>
       <div id="why-we-exist">
