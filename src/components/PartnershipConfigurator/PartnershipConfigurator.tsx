@@ -470,7 +470,7 @@ function CommercialBar({ segments, dark }: {
   }
 
   return (
-    <div className="flex gap-1.5 mt-3">
+    <div className="flex gap-1.5">
       {segments.map((seg, i) => {
         const style = getSegmentStyle(seg.type)
         const widthPct = (seg.span / totalSpan) * 100
@@ -517,6 +517,18 @@ function ModelDescription({ bold, text, dark }: { bold: string; text: string; da
 
 // ── Model Panel (Step 2 Expanded) ────────────────────────────────
 
+function RowLabel({ label, dark }: { label: string; dark: boolean }) {
+  return (
+    <div className={`flex items-center pr-3 shrink-0 w-[72px] md:w-[88px]`}>
+      <span className={`text-[10px] md:text-[11px] font-semibold uppercase tracking-[1px] ${
+        dark ? 'text-white/35' : 'text-gray-400'
+      }`}>
+        {label}
+      </span>
+    </div>
+  )
+}
+
 function ModelPanel({ activeModelId, onSelectModel, effectiveScopes, segments, model, interactive, dark, onScopeClick }: {
   activeModelId: ModelId
   onSelectModel: (id: ModelId) => void
@@ -531,8 +543,13 @@ function ModelPanel({ activeModelId, onSelectModel, effectiveScopes, segments, m
     <div className={`rounded-2xl border p-6 mt-4 ${
       dark ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200'
     }`}>
-      {/* Model tabs */}
-      <ModelTabs activeModel={activeModelId} dark={dark} onSelect={onSelectModel} />
+      {/* Model row */}
+      <div className="flex items-stretch">
+        <RowLabel label="Model" dark={dark} />
+        <div className="flex-1 min-w-0">
+          <ModelTabs activeModel={activeModelId} dark={dark} onSelect={onSelectModel} />
+        </div>
+      </div>
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -545,32 +562,44 @@ function ModelPanel({ activeModelId, onSelectModel, effectiveScopes, segments, m
         >
           {/* Interactive hint */}
           {interactive && (
-            <p className={`text-[11px] mb-3 ${dark ? 'text-accent/60' : 'text-accent/80'}`}>
+            <p className={`text-[11px] mb-3 pl-[72px] md:pl-[88px] ${dark ? 'text-accent/60' : 'text-accent/80'}`}>
               {model.interactionMode === 'cycle'
                 ? 'Click scope boxes to cycle: Client → Consulting → Symphony'
                 : 'Click scope boxes to toggle Symphony on/off'}
             </p>
           )}
 
-          {/* Scope grid */}
-          <div className="grid grid-cols-6 gap-1.5">
-            {effectiveScopes.map((s) => (
-              <ScopeCell
-                key={s.phase}
-                phase={s.phase}
-                owner={s.owner}
-                interactive={interactive}
-                dark={dark}
-                onClick={() => onScopeClick(s.phase)}
-              />
-            ))}
+          {/* Scope row */}
+          <div className="flex items-stretch">
+            <RowLabel label="Scope" dark={dark} />
+            <div className="flex-1 min-w-0">
+              <div className="grid grid-cols-6 gap-1.5">
+                {effectiveScopes.map((s) => (
+                  <ScopeCell
+                    key={s.phase}
+                    phase={s.phase}
+                    owner={s.owner}
+                    interactive={interactive}
+                    dark={dark}
+                    onClick={() => onScopeClick(s.phase)}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Commercial bar */}
-          <CommercialBar segments={segments} dark={dark} />
+          {/* Commercial row */}
+          <div className="flex items-stretch mt-3">
+            <RowLabel label="Commercial" dark={dark} />
+            <div className="flex-1 min-w-0">
+              <CommercialBar segments={segments} dark={dark} />
+            </div>
+          </div>
 
           {/* Description */}
-          <ModelDescription bold={model.descriptionBold} text={model.description} dark={dark} />
+          <div className="pl-[72px] md:pl-[88px]">
+            <ModelDescription bold={model.descriptionBold} text={model.description} dark={dark} />
+          </div>
         </motion.div>
       </AnimatePresence>
     </div>
