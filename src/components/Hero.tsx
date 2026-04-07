@@ -36,7 +36,7 @@ export default function Hero({ dark }: { dark: boolean }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
         >
-          Integrated HV Infrastructure Partner
+          Your Integrated HV Infrastructure Partner
         </motion.p>
 
         <motion.div
