@@ -81,7 +81,7 @@ function ChainNode({ icon, label, x, y, opacity = 1, scale = 1, highlightProgres
 
   return (
     <motion.div
-      className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5"
+      className="absolute -translate-x-1/2 -translate-y-[28px] md:-translate-y-[36px] flex flex-col items-center gap-1.5"
       style={{ left, top, opacity, scale }}
     >
       <motion.div

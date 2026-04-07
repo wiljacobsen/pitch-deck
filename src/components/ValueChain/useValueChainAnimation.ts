@@ -107,7 +107,7 @@ export function useValueChainAnimation(scrollYProgress: MotionValue<number>) {
   const renewablesOpacity = useTransform(scrollYProgress, [0.19, 0.26], [0, 1])
 
   // State A direct arrows (coal → trans → dist → load)
-  const stateAFade = useTransform(scrollYProgress, [0.15, 0.22], [1, 0])
+  const stateAFade = useTransform(scrollYProgress, [0.10, 0.16], [1, 0])
 
   // Core chain arrows (thermal→trans, trans→dist→load) appear after morph
   const coreChainArrows = useTransform(scrollYProgress, [0.24, 0.32], [0, 1])
