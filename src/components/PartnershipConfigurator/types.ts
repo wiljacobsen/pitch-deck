@@ -18,7 +18,41 @@ export type ConnectionVoltage = '33' | '66' | '110' | '132' | '220' | '275' | '3
 
 export type OtherBOPOption = 'internalReticulation' | 'bessBOP' | 'switchgear' | 'protectionSystems'
 
-export type WizardStep = 0 | 1 | 2
+export type WizardStep = 0 | 1 | 2 | 3
+
+// ── Responsibility matrix types ──────────────────────────────────
+
+export type ResponsibilityOwner = 'symphony' | 'client' | 'customerOrSymphony' | 'tnsp' | 'fluence' | 'none'
+
+export type ResponsibilityRow = 'investOwn' | 'designBuild' | 'operateMaintain'
+
+export interface InfraColumn {
+  id: string
+  label: string
+  labelSuffix?: 'mw'
+  iconId: string
+}
+
+export interface TechMatrixDefinition {
+  columns: InfraColumn[]
+  responsibilities: Record<string, Record<ResponsibilityRow, Record<ModelId, ResponsibilityOwner>>>
+  upsellItems?: string[]
+}
+
+// ── Gantt chart types ────────────────────────────────────────────
+
+export type GanttPhaseGroup = 'develop' | 'deliver' | 'operate'
+
+export interface GanttRow {
+  id: string
+  label: string
+  group: GanttPhaseGroup
+  startMonth: number
+  endMonth: number | null
+  modelOwnership: Record<ModelId, 'symphony' | 'client'>
+}
+
+// ── Existing interfaces ──────────────────────────────────────────
 
 export interface ScopeState {
   phase: ScopePhase

@@ -6,6 +6,8 @@ import {
   COMMERCIAL_BAR_LABELS, OWNER_LABELS, CONNECTION_VOLTAGES,
   OTHER_BOP_OPTIONS, DEFAULT_INFRASTRUCTURE,
 } from './data'
+import { ResponsibilityMatrix } from './ResponsibilityMatrix'
+import { GanttChart } from './GanttChart'
 import type {
   Technology, ModelId, ScopeOwner, ScopePhase, ScopeState,
   CommercialType, ConnectionVoltage,
@@ -748,7 +750,7 @@ export function PartnershipConfigurator({
           viewport={{ once: true }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
         >
-          <span className={`text-[10px] uppercase tracking-[1.5px] font-semibold mb-2 ${dark ? 'text-accent/60' : 'text-accent/70'}`}>
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-[1.5px] font-semibold mb-2 bg-accent/15 text-accent border border-accent/20`}>
             Step 1
           </span>
           <div
@@ -793,7 +795,7 @@ export function PartnershipConfigurator({
 
         {/* + connector */}
         <div className="hidden md:flex items-end justify-center px-3 pb-6">
-          <span className={`text-lg font-light ${dark ? 'text-white/20' : 'text-gray-300'}`}>+</span>
+          <span className={`text-2xl font-semibold ${dark ? 'text-white/40' : 'text-gray-400'}`}>+</span>
         </div>
 
         {/* Box 2: How do you want to partner? */}
@@ -804,7 +806,7 @@ export function PartnershipConfigurator({
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
         >
-          <span className={`text-[10px] uppercase tracking-[1.5px] font-semibold mb-2 ${dark ? 'text-accent/60' : 'text-accent/70'}`}>
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-[1.5px] font-semibold mb-2 bg-accent/15 text-accent border border-accent/20`}>
             Step 2
           </span>
           <div
@@ -839,10 +841,10 @@ export function PartnershipConfigurator({
 
         {/* = connector */}
         <div className="hidden md:flex items-end justify-center px-3 pb-6">
-          <span className={`text-lg font-light ${dark ? 'text-white/20' : 'text-gray-300'}`}>=</span>
+          <span className={`text-2xl font-semibold ${dark ? 'text-white/40' : 'text-gray-400'}`}>=</span>
         </div>
 
-        {/* Box 3: Result (read-only, no step label) */}
+        {/* Box 3: View your partnership model */}
         <motion.div
           className="flex-1 flex flex-col"
           initial={{ opacity: 0, y: 20 }}
@@ -850,65 +852,72 @@ export function PartnershipConfigurator({
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: 0.2, ease: 'easeOut' }}
         >
-          {/* Spacer to align with step labels */}
-          <span className="text-[10px] uppercase tracking-[1.5px] font-semibold mb-2 opacity-0 pointer-events-none select-none">
-            &nbsp;
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-[1.5px] font-semibold mb-2 bg-accent/15 text-accent border border-accent/20`}>
+            Step 3
           </span>
-          <GlassCard dark={dark} highlight className="h-full">
-            <p className="text-[10px] uppercase tracking-[1.2px] font-medium mb-3 text-accent">
-              Your partnership product
-            </p>
-            <AnimatePresence mode="wait">
-              {resultSummary.hasProject ? (
-                <motion.div
-                  key={`${resultSummary.headline}-${resultSummary.model}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <div className="flex items-start gap-2">
-                    <ZapIcon />
-                    <div className="min-w-0">
-                      <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>
-                        {resultSummary.headline}
-                      </p>
-                      <p className={`text-[11px] mt-0.5 ${dark ? 'text-white/60' : 'text-gray-500'}`}>
-                        {resultSummary.model}
-                      </p>
-                      {(resultSummary.infraParts.length > 0 || resultSummary.transmissionLine || resultSummary.connectionVoltage) && (
-                        <div className={`text-[10px] mt-2 space-y-0.5 ${dark ? 'text-white/40' : 'text-gray-400'}`}>
-                          {resultSummary.infraParts.length > 0 && (
-                            <p>{resultSummary.infraParts.join(' · ')}</p>
-                          )}
-                          {resultSummary.transmissionLine && (
-                            <p>{resultSummary.transmissionLine}</p>
-                          )}
-                          {resultSummary.connectionVoltage && (
-                            <p>{resultSummary.connectionVoltage}</p>
-                          )}
-                          {resultSummary.bopItems.length > 0 && (
-                            <p>{resultSummary.bopItems.join(' · ')}</p>
-                          )}
-                        </div>
-                      )}
+          <div
+            onClick={() => toggleStep(3)}
+            className="cursor-pointer flex-1"
+          >
+            <GlassCard dark={dark} highlight className={`h-full transition-all duration-200 ${expandedStep === 3 ? 'ring-1 ring-accent/40' : ''}`}>
+              <div className="flex items-start justify-between">
+                <p className="text-[10px] uppercase tracking-[1.2px] font-medium mb-3 text-accent">
+                  View your partnership model
+                </p>
+                <ChevronDown open={expandedStep === 3} dark={dark} />
+              </div>
+              <AnimatePresence mode="wait">
+                {resultSummary.hasProject ? (
+                  <motion.div
+                    key={`${resultSummary.headline}-${resultSummary.model}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className="flex items-start gap-2">
+                      <ZapIcon />
+                      <div className="min-w-0">
+                        <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>
+                          {resultSummary.headline}
+                        </p>
+                        <p className={`text-[11px] mt-0.5 ${dark ? 'text-white/60' : 'text-gray-500'}`}>
+                          {resultSummary.model}
+                        </p>
+                        {(resultSummary.infraParts.length > 0 || resultSummary.transmissionLine || resultSummary.connectionVoltage) && (
+                          <div className={`text-[10px] mt-2 space-y-0.5 ${dark ? 'text-white/40' : 'text-gray-400'}`}>
+                            {resultSummary.infraParts.length > 0 && (
+                              <p>{resultSummary.infraParts.join(' · ')}</p>
+                            )}
+                            {resultSummary.transmissionLine && (
+                              <p>{resultSummary.transmissionLine}</p>
+                            )}
+                            {resultSummary.connectionVoltage && (
+                              <p>{resultSummary.connectionVoltage}</p>
+                            )}
+                            {resultSummary.bopItems.length > 0 && (
+                              <p>{resultSummary.bopItems.join(' · ')}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.p
-                  key="empty-result"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className={`text-[12px] ${dark ? 'text-white/25' : 'text-gray-400'}`}
-                >
-                  Configure your project to see the result
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </GlassCard>
+                  </motion.div>
+                ) : (
+                  <motion.p
+                    key="empty-result"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className={`text-[12px] ${dark ? 'text-white/25' : 'text-gray-400'}`}
+                  >
+                    Configure your project to see the result
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </GlassCard>
+          </div>
         </motion.div>
       </div>
 
@@ -953,6 +962,30 @@ export function PartnershipConfigurator({
               dark={dark}
               onScopeClick={handleScopeClick}
             />
+          </motion.div>
+        )}
+        {expandedStep === 3 && (
+          <motion.div
+            key="step3-panel"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="overflow-hidden"
+          >
+            <div className={`rounded-2xl border p-6 mt-4 ${
+              dark ? 'bg-white/[0.02] border-white/10' : 'bg-gray-50/50 border-gray-200'
+            }`}>
+              <ResponsibilityMatrix
+                technology={technology}
+                modelId={activeModelId}
+                projectSizeMW={projectSizeMW}
+                dark={dark}
+              />
+              <div className="mt-8">
+                <GanttChart modelId={activeModelId} dark={dark} />
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
