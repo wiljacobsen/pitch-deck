@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import GlassCard from '../../ui/GlassCard'
-import { PHASES, TECHNOLOGY_OPTIONS, MODELS, SCOPE_COLORS, COMMERCIAL_LABELS, OWNER_LABELS } from './data'
-import type { Technology, ModelId, ScopeOwner, ScopePhase, ScopeState, PartnershipConfiguratorProps } from './types'
+import { PHASES, TECHNOLOGY_OPTIONS, MODELS, SCOPE_COLORS, COMMERCIAL_BAR_LABELS, OWNER_LABELS } from './data'
+import type { Technology, ModelId, ScopeOwner, ScopePhase, ScopeState, CommercialType, PartnershipConfiguratorProps } from './types'
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -12,6 +12,37 @@ function getTechLabel(id: Technology) {
 
 function getModel(id: ModelId) {
   return MODELS.find(m => m.id === id)!
+}
+
+// ── Commercial Bar Segments ──────────────────────────────────────
+
+interface CommercialSegment {
+  type: CommercialType
+  label: string
+  span: number
+  owner: ScopeOwner
+}
+
+function computeSegments(
+  scopes: ScopeState[],
+  mapping: Record<ScopeOwner, CommercialType>,
+): CommercialSegment[] {
+  const segments: CommercialSegment[] = []
+  for (const s of scopes) {
+    const type = mapping[s.owner]
+    const last = segments[segments.length - 1]
+    if (last && last.type === type) {
+      last.span++
+    } else {
+      segments.push({
+        type,
+        label: COMMERCIAL_BAR_LABELS[type],
+        span: 1,
+        owner: s.owner,
+      })
+    }
+  }
+  return segments
 }
 
 // ── Technology Pill ───────────────────────────────────────────────
@@ -48,12 +79,15 @@ function ConfiguratorRow({ technology, modelLabel, resultText, dark, onSelectTec
     <div className="flex flex-col md:flex-row items-stretch gap-3 md:gap-0 mb-8">
       {/* Box 1: Technology */}
       <motion.div
-        className="flex-1"
+        className="flex-1 flex flex-col"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
       >
+        <span className={`text-[10px] uppercase tracking-[1.5px] font-semibold mb-2 ${dark ? 'text-accent/60' : 'text-accent/70'}`}>
+          Step 1
+        </span>
         <GlassCard dark={dark} className="h-full">
           <p className={`text-[10px] uppercase tracking-[1.2px] font-medium mb-3 ${dark ? 'text-white/40' : 'text-gray-400'}`}>
             What are you connecting?
@@ -70,18 +104,21 @@ function ConfiguratorRow({ technology, modelLabel, resultText, dark, onSelectTec
       </motion.div>
 
       {/* + connector */}
-      <div className="hidden md:flex items-center justify-center px-3">
+      <div className="hidden md:flex items-end justify-center px-3 pb-6">
         <span className={`text-lg font-light ${dark ? 'text-white/20' : 'text-gray-300'}`}>+</span>
       </div>
 
       {/* Box 2: Model display */}
       <motion.div
-        className="flex-1"
+        className="flex-1 flex flex-col"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
       >
+        <span className={`text-[10px] uppercase tracking-[1.5px] font-semibold mb-2 ${dark ? 'text-accent/60' : 'text-accent/70'}`}>
+          Step 2
+        </span>
         <GlassCard dark={dark} className="h-full">
           <p className={`text-[10px] uppercase tracking-[1.2px] font-medium mb-3 ${dark ? 'text-white/40' : 'text-gray-400'}`}>
             How do you want to partner?
@@ -105,18 +142,22 @@ function ConfiguratorRow({ technology, modelLabel, resultText, dark, onSelectTec
       </motion.div>
 
       {/* = connector */}
-      <div className="hidden md:flex items-center justify-center px-3">
+      <div className="hidden md:flex items-end justify-center px-3 pb-6">
         <span className={`text-lg font-light ${dark ? 'text-white/20' : 'text-gray-300'}`}>=</span>
       </div>
 
-      {/* Box 3: Result */}
+      {/* Box 3: Result (no step label) */}
       <motion.div
-        className="flex-1"
+        className="flex-1 flex flex-col"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4, delay: 0.2, ease: 'easeOut' }}
       >
+        {/* Spacer to align with step labels */}
+        <span className="text-[10px] uppercase tracking-[1.5px] font-semibold mb-2 opacity-0 pointer-events-none select-none">
+          &nbsp;
+        </span>
         <GlassCard dark={dark} highlight className="h-full">
           <p className="text-[10px] uppercase tracking-[1.2px] font-medium mb-3 text-accent">
             Your partnership product
@@ -180,7 +221,7 @@ function ModelTabs({ activeModel, dark, onSelect }: {
   )
 }
 
-// ── Scope Cell ────────────────────────────────────────────────────
+// ── Scope Cell (fully rounded, no commercial text) ───────────────
 
 function ScopeCell({ phase, owner, interactive, dark, onClick }: {
   phase: ScopePhase; owner: ScopeOwner; interactive: boolean; dark: boolean
@@ -197,7 +238,7 @@ function ScopeCell({ phase, owner, interactive, dark, onClick }: {
         borderColor: colors.border,
       }}
       transition={{ duration: 0.2 }}
-      className={`flex flex-col items-center justify-center p-2 md:p-3 rounded-t-lg border text-center min-h-[64px] md:min-h-[72px]
+      className={`flex flex-col items-center justify-center p-2 md:p-3 rounded-lg border text-center min-h-[64px] md:min-h-[72px]
         ${colors.dashed ? 'border-dashed' : 'border-solid'}
         ${interactive ? 'cursor-pointer hover:brightness-110 active:scale-[0.98]' : ''}
       `}
@@ -218,33 +259,79 @@ function ScopeCell({ phase, owner, interactive, dark, onClick }: {
   )
 }
 
-// ── Commercial Cell ───────────────────────────────────────────────
+// ── Commercial Bar ───────────────────────────────────────────────
 
-function CommercialCell({ owner, commercialType, dark }: {
-  owner: ScopeOwner; commercialType: string; dark: boolean
+function CommercialBar({ segments, dark }: {
+  segments: CommercialSegment[]; dark: boolean
 }) {
-  const colors = SCOPE_COLORS[owner]
-  const isNone = commercialType === '—'
+  const totalSpan = segments.reduce((sum, s) => sum + s.span, 0)
+
+  const getSegmentStyle = (type: CommercialType) => {
+    switch (type) {
+      case 'annualFee':
+        return {
+          bg: dark ? '#0C447C' : '#E6F1FB',
+          color: dark ? '#E6F1FB' : '#0C447C',
+        }
+      case 'servicesFee':
+        return {
+          bg: dark ? '#412402' : '#FAEEDA',
+          color: dark ? '#FAEEDA' : '#412402',
+        }
+      case 'lumpSum':
+        return {
+          bg: dark ? '#412402' : '#FAEEDA',
+          color: dark ? '#FAEEDA' : '#412402',
+        }
+      case 'clientCapex':
+        return {
+          bg: dark ? '#2C2C2A' : '#F1EFE8',
+          color: dark ? '#B4B2A9' : '#5F5E5A',
+        }
+      default:
+        return { bg: 'transparent', color: 'transparent' }
+    }
+  }
+
+  // Filter out 'none' segments but keep them as spacers
+  const visibleSegments = segments.map(seg => ({
+    ...seg,
+    visible: seg.type !== 'none',
+  }))
 
   return (
-    <motion.div
-      animate={{
-        backgroundColor: isNone
-          ? (dark ? 'rgba(44,44,42,0.5)' : 'rgba(241,239,232,0.5)')
-          : (dark ? colors.darkBg : colors.bg),
-        borderColor: isNone ? (dark ? 'rgba(180,178,169,0.3)' : 'rgba(180,178,169,0.5)') : colors.border,
-      }}
-      transition={{ duration: 0.2 }}
-      className={`flex items-center justify-center p-1.5 md:p-2 rounded-b-lg border-x border-b text-center min-h-[32px]
-        ${isNone ? 'border-dashed' : colors.dashed ? 'border-dashed' : 'border-solid'}`}
-    >
-      <span
-        className="text-[8px] md:text-[9px] font-medium"
-        style={{ color: isNone ? (dark ? '#B4B2A9' : '#5F5E5A') : (dark ? colors.darkText : colors.text) }}
-      >
-        {commercialType}
-      </span>
-    </motion.div>
+    <div className="flex gap-1.5 mt-3">
+      {visibleSegments.map((seg, i) => {
+        const style = getSegmentStyle(seg.type)
+        const widthPct = (seg.span / totalSpan) * 100
+
+        if (!seg.visible) {
+          // Invisible spacer to maintain alignment
+          return (
+            <div key={i} style={{ flex: `0 0 ${widthPct}%` }} />
+          )
+        }
+
+        return (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scaleX: 0.8 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={{ duration: 0.25, delay: i * 0.05 }}
+            className="rounded-lg py-2.5 px-3 text-center overflow-hidden"
+            style={{
+              flex: `0 0 calc(${widthPct}% - ${visibleSegments.length > 1 ? '3px' : '0px'})`,
+              backgroundColor: style.bg,
+              color: style.color,
+            }}
+          >
+            <span className="text-[10px] md:text-[11px] font-semibold whitespace-nowrap">
+              {seg.label}
+            </span>
+          </motion.div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -280,15 +367,6 @@ function Legend({ dark }: { dark: boolean }) {
       <div className="flex items-center gap-1.5">
         <span className={`${dotClass} border border-dashed`} style={{ borderColor: '#B4B2A9', background: 'transparent' }} />
         <span className={labelClass}>Client-led</span>
-      </div>
-      <div className="w-px" />
-      <div className="flex items-center gap-1.5">
-        <span className={dotClass} style={{ background: '#185FA5' }} />
-        <span className={labelClass}>Annual service fee</span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <span className={dotClass} style={{ background: '#854F0B' }} />
-        <span className={labelClass}>Lump sum / services / client capex</span>
       </div>
     </div>
   )
@@ -334,13 +412,11 @@ export function PartnershipConfigurator({
     })
   }, [model, scopeOverrides])
 
-  // Derive commercial types
-  const commercialTypes = useMemo(() => {
-    return effectiveScopes.map(s => ({
-      phase: s.phase,
-      type: COMMERCIAL_LABELS[model.commercialMapping[s.owner]],
-    }))
-  }, [effectiveScopes, model])
+  // Compute commercial bar segments
+  const segments = useMemo(
+    () => computeSegments(effectiveScopes, model.commercialMapping),
+    [effectiveScopes, model],
+  )
 
   // Fire onChange
   useEffect(() => {
@@ -366,7 +442,7 @@ export function PartnershipConfigurator({
 
   return (
     <div className="max-w-5xl w-full mx-auto">
-      {/* Section 1: Configurator boxes */}
+      {/* Section 1: Configurator boxes with step labels */}
       <ConfiguratorRow
         technology={technology}
         modelLabel={model.label}
@@ -391,13 +467,13 @@ export function PartnershipConfigurator({
           {model.interactive && (
             <p className={`text-[11px] mb-3 ${dark ? 'text-accent/60' : 'text-accent/80'}`}>
               {model.interactionMode === 'cycle'
-                ? '💡 Click scope boxes to cycle: Client → Consulting → Symphony'
-                : '💡 Click scope boxes to toggle Symphony on/off'}
+                ? 'Click scope boxes to cycle: Client → Consulting → Symphony'
+                : 'Click scope boxes to toggle Symphony on/off'}
             </p>
           )}
 
-          {/* Scope grid */}
-          <div className="grid grid-cols-6 gap-px">
+          {/* Scope grid — fully rounded cells with gaps */}
+          <div className="grid grid-cols-6 gap-1.5">
             {effectiveScopes.map((s) => (
               <ScopeCell
                 key={s.phase}
@@ -410,17 +486,8 @@ export function PartnershipConfigurator({
             ))}
           </div>
 
-          {/* Commercial grid */}
-          <div className="grid grid-cols-6 gap-px -mt-px">
-            {commercialTypes.map((c, i) => (
-              <CommercialCell
-                key={c.phase}
-                owner={effectiveScopes[i].owner}
-                commercialType={c.type}
-                dark={dark}
-              />
-            ))}
-          </div>
+          {/* Commercial bar — separate from scope grid */}
+          <CommercialBar segments={segments} dark={dark} />
 
           {/* Description */}
           <ModelDescription bold={model.descriptionBold} text={model.description} dark={dark} />

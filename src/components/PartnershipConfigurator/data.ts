@@ -124,6 +124,14 @@ export const COMMERCIAL_LABELS: Record<CommercialType, string> = {
   none: '—',
 }
 
+export const COMMERCIAL_BAR_LABELS: Record<CommercialType, string> = {
+  annualFee: 'Zero Capex — annual service fee',
+  lumpSum: 'Lump sum',
+  servicesFee: 'Advisory fee',
+  clientCapex: 'Client capex',
+  none: '',
+}
+
 export const OWNER_LABELS: Record<ScopeOwner, string> = {
   symphony: 'Symphony',
   client: 'Client',
