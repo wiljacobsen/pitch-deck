@@ -81,11 +81,11 @@ function ChainNode({ icon, label, x, y, opacity = 1, scale = 1, highlightProgres
 
   return (
     <motion.div
-      className="absolute -translate-x-1/2 -translate-y-[40px] md:-translate-y-[48px] flex flex-col items-center gap-1.5"
+      className="absolute -translate-x-1/2 -translate-y-[30px] md:-translate-y-[38px] flex flex-col items-center gap-1.5"
       style={{ left, top, opacity, scale }}
     >
       <motion.div
-        className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center border"
+        className="w-16 h-16 md:w-[76px] md:h-[76px] rounded-2xl flex items-center justify-center border"
         style={{
           borderColor: borderColor || cat.border,
           backgroundColor: bgColor || cat.bg,
@@ -95,7 +95,7 @@ function ChainNode({ icon, label, x, y, opacity = 1, scale = 1, highlightProgres
         }}
       >
         <motion.div
-          className="w-11 h-11 md:w-14 md:h-14"
+          className="w-9 h-9 md:w-11 md:h-11"
           style={{ color: iconColorVal || cat.icon }}
         >
           {icon}
@@ -291,110 +291,97 @@ function ElectronDots({ x1, y1, x2, y2, opacity = 1, delay, routing = 'straight'
 export default function ValueChainCanvas({ scrollYProgress, dark }: { scrollYProgress: MotionValue<number>; dark: boolean }) {
   const anim = useValueChainAnimation(scrollYProgress)
   const p = anim.positions
-  const iconSize = "w-11 h-11 md:w-14 md:h-14"
+  const iconSize = "w-9 h-9 md:w-11 md:h-11"
 
   return (
     <div className="relative w-full h-full">
       {/* ===== TITLE A: Traditional value chain ===== */}
       <motion.div
-        className="absolute top-[6%] left-0 z-10 w-full max-w-3xl px-8 md:px-12"
+        className="absolute top-[4%] left-0 z-10 w-[55%] px-8 md:px-12"
         style={{ opacity: anim.titleAOpacity }}
       >
-        <h2 className={`text-2xl md:text-4xl font-bold mb-3 ${dark ? 'text-white' : 'text-gray-900'}`}>
+        <h2 className={`text-xl md:text-3xl font-bold mb-2 ${dark ? 'text-white' : 'text-gray-900'}`}>
           The Traditional Grid
         </h2>
-        <ul className={`text-sm md:text-base max-w-2xl leading-relaxed space-y-1.5 ${dark ? 'text-white/70' : 'text-gray-600'}`}>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>Power has historically flowed one way — from large centralised generators through transmission and distribution networks to consumers</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>Coal and gas plants dominated Australian generation for over a century</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>The grid was designed around a small number of large, predictable power stations</span></li>
-        </ul>
+        <p className={`text-sm md:text-base leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
+          Power has historically flowed one way — from large centralised generators through transmission and distribution networks to consumers. Coal and gas plants dominated Australian generation for over a century. The grid was designed around a small number of large, predictable power stations.
+        </p>
       </motion.div>
 
       {/* ===== TITLE B: Energy transition ===== */}
       <motion.div
-        className="absolute top-[6%] left-0 z-10 w-full max-w-3xl px-8 md:px-12"
+        className="absolute top-[4%] left-0 z-10 w-[55%] px-8 md:px-12"
         style={{ opacity: anim.titleBOpacity }}
       >
-        <h2 className={`text-2xl md:text-4xl font-bold mb-3 ${dark ? 'text-white' : 'text-gray-900'}`}>
+        <h2 className={`text-xl md:text-3xl font-bold mb-2 ${dark ? 'text-white' : 'text-gray-900'}`}>
           Australia's Energy Transformation
         </h2>
-        <ul className={`text-sm md:text-base max-w-2xl leading-relaxed space-y-1.5 ${dark ? 'text-white/70' : 'text-gray-600'}`}>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>Australia's ageing coal fleet is rapidly retiring — over 60% of capacity scheduled to close by 2035</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>Renewables are the cheapest and fastest replacement: distributed wind, solar, and battery storage</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>AEMO's Integrated System Plan projects massive new capacity to meet demand</span></li>
-        </ul>
+        <p className={`text-sm md:text-base leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
+          Australia's ageing coal fleet is rapidly retiring — over 60% of capacity scheduled to close by 2035. Renewables are the cheapest and fastest replacement: distributed wind, solar, and battery storage. AEMO's Integrated System Plan projects massive new capacity to meet demand.
+        </p>
         {/* AEMO ISP headline figures */}
-        <div className="flex gap-4 md:gap-6 mt-4">
+        <div className="flex gap-4 md:gap-6 mt-3">
           <div className="text-center">
-            <span className="text-lg md:text-2xl font-bold text-amber-400">~68 GW</span>
+            <span className="text-base md:text-xl font-bold text-amber-400">~68 GW</span>
             <span className={`text-[10px] md:text-xs block ${dark ? 'text-white/50' : 'text-gray-500'}`}>Solar by 2050</span>
           </div>
           <div className="text-center">
-            <span className="text-lg md:text-2xl font-bold text-sky-400">~32 GW</span>
+            <span className="text-base md:text-xl font-bold text-sky-400">~32 GW</span>
             <span className={`text-[10px] md:text-xs block ${dark ? 'text-white/50' : 'text-gray-500'}`}>Wind by 2050</span>
           </div>
           <div className="text-center">
-            <span className="text-lg md:text-2xl font-bold text-emerald-400">~19 GW</span>
+            <span className="text-base md:text-xl font-bold text-emerald-400">~19 GW</span>
             <span className={`text-[10px] md:text-xs block ${dark ? 'text-white/50' : 'text-gray-500'}`}>Storage by 2050</span>
           </div>
         </div>
-        <span className={`text-[9px] mt-1.5 block ${dark ? 'text-white/30' : 'text-gray-400'}`}>Source: AEMO 2024 ISP, Step Change scenario</span>
+        <span className={`text-[9px] mt-1 block ${dark ? 'text-white/30' : 'text-gray-400'}`}>Source: AEMO 2024 ISP, Step Change scenario</span>
       </motion.div>
 
       {/* ===== TITLE C: Connecting to grid ===== */}
       <motion.div
-        className="absolute top-[6%] left-0 z-10 w-full max-w-3xl px-8 md:px-12"
+        className="absolute top-[4%] left-0 z-10 w-[55%] px-8 md:px-12"
         style={{ opacity: anim.titleCOpacity }}
       >
-        <h2 className={`text-2xl md:text-4xl font-bold mb-3 ${dark ? 'text-white' : 'text-gray-900'}`}>
+        <h2 className={`text-xl md:text-3xl font-bold mb-2 ${dark ? 'text-white' : 'text-gray-900'}`}>
           The Connection Infrastructure Bottleneck
         </h2>
-        <ul className={`text-sm md:text-base max-w-2xl leading-relaxed space-y-1.5 ${dark ? 'text-white/70' : 'text-gray-600'}`}>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>Every new generator and large load requires dedicated HV connection infrastructure — substations, switchyards, and protection systems</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>Regulated network operators are stretched — the pipeline of work far exceeds their delivery capacity</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>Contestable connection infrastructure enables specialist third parties to deliver and own this critical infrastructure</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>This creates a multi-billion dollar market for experienced infrastructure partners</span></li>
-        </ul>
+        <p className={`text-sm md:text-base leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
+          Every new generator and large load requires dedicated HV connection infrastructure — substations, switchyards, and protection systems. Regulated network operators are stretched — the pipeline of work far exceeds their delivery capacity. Contestable connection infrastructure enables specialist third parties to deliver and own this critical infrastructure, creating a multi-billion dollar market.
+        </p>
       </motion.div>
 
       {/* ===== TITLE D: Digital growth ===== */}
       <motion.div
-        className="absolute top-[6%] left-0 z-10 w-full max-w-3xl px-8 md:px-12"
+        className="absolute top-[4%] left-0 z-10 w-[55%] px-8 md:px-12"
         style={{ opacity: anim.titleDOpacity }}
       >
-        <h2 className={`text-2xl md:text-4xl font-bold mb-3 ${dark ? 'text-white' : 'text-gray-900'}`}>
+        <h2 className={`text-xl md:text-3xl font-bold mb-2 ${dark ? 'text-white' : 'text-gray-900'}`}>
           The AI and Data Centre Demand Explosion
         </h2>
-        <ul className={`text-sm md:text-base max-w-2xl leading-relaxed space-y-1.5 ${dark ? 'text-white/70' : 'text-gray-600'}`}>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>Global AI investment is driving unprecedented demand for data centre capacity in Australia</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>Each hyperscale facility requires 100–500 MW of dedicated grid connection — equivalent to a large wind farm</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>Australia's pipeline of announced data centre projects exceeds 10 GW of new load</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>This creates a second wave of connection infrastructure demand alongside the energy transition</span></li>
-        </ul>
+        <p className={`text-sm md:text-base leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
+          Global AI investment is driving unprecedented demand for data centre capacity in Australia. Each hyperscale facility requires 100–500 MW of dedicated grid connection — equivalent to a large wind farm. Australia's pipeline exceeds 10 GW of new load, creating a second wave of connection infrastructure demand alongside the energy transition.
+        </p>
       </motion.div>
 
       {/* ===== TITLE E: Symphony's role ===== */}
       <motion.div
-        className="absolute top-[6%] left-0 z-10 w-full max-w-3xl px-8 md:px-12"
+        className="absolute top-[4%] left-0 z-10 w-[55%] px-8 md:px-12"
         style={{ opacity: anim.titleEOpacity }}
       >
-        <h2 className={`text-2xl md:text-4xl font-bold mb-3 ${dark ? 'text-white' : 'text-gray-900'}`}>
+        <h2 className={`text-xl md:text-3xl font-bold mb-2 ${dark ? 'text-white' : 'text-gray-900'}`}>
           That's where <span className="text-accent">Symphony</span> comes in
         </h2>
-        <ul className={`text-sm md:text-base max-w-2xl leading-relaxed space-y-1.5 ${dark ? 'text-white/70' : 'text-gray-600'}`}>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>Symphony designs, builds, owns, and operates the connection infrastructure linking generators and loads to the grid</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>We provide certainty of delivery, de-risking projects for developers, investors, and network operators</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>Our integrated model spans the full lifecycle — feasibility through construction to 30-year asset management</span></li>
-          <li className="flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" /><span>An independent, specialist platform with deep power systems expertise</span></li>
-        </ul>
-        <div className="flex items-center gap-2 mt-4 px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/20 w-fit">
+        <p className={`text-sm md:text-base leading-relaxed ${dark ? 'text-white/70' : 'text-gray-600'}`}>
+          Symphony designs, builds, owns, and operates the connection infrastructure linking generators and loads to the grid. We provide certainty of delivery, de-risking projects for developers, investors, and network operators. Our integrated model spans the full lifecycle — feasibility through construction to 30-year asset management.
+        </p>
+        <div className="flex items-center gap-2 mt-3 px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/20 w-fit">
           <div className="w-3 h-3 rounded bg-accent" />
           <span className="text-xs font-semibold text-accent-light">Symphony Connection Infrastructure</span>
         </div>
       </motion.div>
 
       {/* Infographic area — below titles, with breathing room */}
-      <div className="absolute top-[26%] left-[1%] right-[1%] bottom-[5%]">
+      <div className="absolute top-[28%] left-[1%] right-[1%] bottom-[3%]">
         <div className="relative w-full h-full">
 
           {/* ===== State A arrows: Coal → Transmission → Distribution → Load (straight horizontal) ===== */}
