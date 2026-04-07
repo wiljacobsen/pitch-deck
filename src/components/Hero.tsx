@@ -19,7 +19,7 @@ export default function Hero({ dark }: { dark: boolean }) {
       {/* Animated wave background */}
       <SymphonyWaves dark={dark} />
 
-      <div className="relative z-10 text-center px-6">
+      <div className="relative z-10 text-center px-6 mt-12 md:mt-16">
         <motion.img
           src="/Symphony_Logo_White.png"
           alt="Symphony"
@@ -54,10 +54,7 @@ export default function Hero({ dark }: { dark: boolean }) {
           transition={{ duration: 0.8, delay: 0.9, ease: 'easeOut' }}
         >
           <p className={`text-sm md:text-base font-semibold tracking-wide ${dark ? 'text-white/80' : 'text-gray-700'}`}>
-            Business Overview
-          </p>
-          <p className={`text-sm md:text-base font-semibold tracking-wide ${dark ? 'text-white/80' : 'text-gray-700'}`}>
-            Prepared for Client A
+            Business Overview Prepared for Client A
           </p>
           <p className={`text-xs md:text-sm mt-1.5 font-light ${dark ? 'text-white/40' : 'text-gray-400'}`}>
             {dateStr}
