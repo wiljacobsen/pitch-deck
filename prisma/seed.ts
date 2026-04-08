@@ -35,6 +35,14 @@ async function main() {
       },
     },
     {
+      title: 'Executive Leadership',
+      slug: 'executive-leadership',
+      category: 'Introduction',
+      componentType: 'exec-leadership',
+      contentData: {},
+      description: 'Symphony cross-industry leadership team profiles.',
+    },
+    {
       title: 'Energy Value Chain',
       slug: 'energy-value-chain',
       category: 'Value Chain',

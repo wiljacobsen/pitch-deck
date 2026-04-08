@@ -10,6 +10,7 @@ import TextBlockSlide from '@/components/slides/TextBlockSlide'
 import StatsBlockSlide from '@/components/slides/StatsBlockSlide'
 import LeadershipTeamSlide from '@/components/slides/LeadershipTeamSlide'
 import ImageBlockSlide from '@/components/slides/ImageBlockSlide'
+import ExecLeadershipSlide from '@/components/slides/ExecLeadershipSlide/ExecLeadershipSlide'
 
 export const slideRegistry: Record<string, SlideRegistryEntry> = {
   'hero': {
@@ -110,6 +111,13 @@ export const slideRegistry: Record<string, SlideRegistryEntry> = {
         },
       },
     },
+  },
+  'exec-leadership': {
+    component: ExecLeadershipSlide,
+    label: 'Executive Leadership',
+    category: 'Introduction',
+    isCodeConfigured: true,
+    contentSchema: {},
   },
   'image-block': {
     component: ImageBlockSlide,
