@@ -9,7 +9,9 @@ export default auth((req) => {
   // Public routes
   if (pathname === '/login' || pathname.startsWith('/api/auth')) {
     if (isLoggedIn && pathname === '/login') {
-      return NextResponse.redirect(new URL('/admin', req.url))
+      // Redirect admins to dashboard, viewers to home page
+      const dest = role === 'ADMIN' ? '/admin' : '/'
+      return NextResponse.redirect(new URL(dest, req.url))
     }
     return NextResponse.next()
   }
