@@ -5,10 +5,12 @@ import { useMotionValue, animate } from 'motion/react'
 import ValueChainCanvas from './ValueChainCanvas'
 import type { SlideComponentProps } from '@/types'
 
-const TOTAL_STEPS = 5
+const TOTAL_STEPS = 5 // 1.1, 1.2, 1.3, 1.4, 1.5
+
+// Each step maps to a scroll progress value (0–1)
 const STEP_POSITIONS = [0.0, 0.2, 0.4, 0.6, 0.9]
 
-export default function ValueChainSlide({ dark }: SlideComponentProps) {
+export default function ValueChainSlide({ contentData, dark }: SlideComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [currentStep, setCurrentStep] = useState(0)
   const scrollYProgress = useMotionValue(0)
