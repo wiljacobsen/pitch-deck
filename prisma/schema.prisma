@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VIEWER
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  name         String?
+  role         Role         @default(VIEWER)
+  createdAt    DateTime     @default(now())
+  slides       Slide[]
+  decks        Deck[]
+  deckAccess   DeckAccess[]
+}
+
+model Slide {
+  id            String      @id @default(cuid())
+  title         String
+  slug          String      @unique
+  description   String?
+  category      String
+  componentType String
+  contentData   Json
+  thumbnailUrl  String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  createdBy     String
+  creator       User        @relation(fields: [createdBy], references: [id])
+  deckSlides    DeckSlide[]
+}
+
+model Deck {
+  id          String       @id @default(cuid())
+  title       String
+  slug        String       @unique
+  description String?
+  clientName  String?
+  isPublished Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  createdBy   String
+  creator     User         @relation(fields: [createdBy], references: [id])
+  deckSlides  DeckSlide[]
+  deckAccess  DeckAccess[]
+}
+
+model DeckSlide {
+  id       String @id @default(cuid())
+  deckId   String
+  slideId  String
+  position Int
+  deck     Deck   @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  slide    Slide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
+
+  @@unique([deckId, position])
+}
+
+model DeckAccess {
+  id     String @id @default(cuid())
+  deckId String
+  userId String
+  deck   Deck   @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([deckId, userId])
+}

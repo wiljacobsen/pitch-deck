@@ -1,73 +1,84 @@
-# React + TypeScript + Vite
+# Symphony Deck Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack web application for creating, managing, and presenting slide decks for Symphony — Your Integrated HV Infrastructure Partner.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Framework**: Next.js 15 (App Router, TypeScript)
+- **Database**: PostgreSQL with Prisma ORM
+- **Styling**: Tailwind CSS v4
+- **Animation**: Motion (from motion/react)
+- **Auth**: NextAuth.js v5 (credentials provider)
+- **Drag & Drop**: @dnd-kit/core
 
-## React Compiler
+## Quick Start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Prerequisites
 
-## Expanding the ESLint configuration
+- Node.js 22+
+- Docker & Docker Compose (for PostgreSQL)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Setup
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1. **Start the database:**
+   ```bash
+   docker-compose up db -d
+   ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+3. **Push the database schema:**
+   ```bash
+   npx prisma db push
+   ```
+
+4. **Seed the database:**
+   ```bash
+   npx prisma db seed
+   ```
+
+5. **Start the dev server:**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open the app:**
+   - Login: http://localhost:3000/login
+   - Email: `admin@symphony.com`
+   - Password: `changeme123`
+
+### Docker (Full Stack)
+
+```bash
+docker-compose up --build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+This starts both PostgreSQL and the Next.js app. Access at http://localhost:3000.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Features
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Admin Dashboard** with slide library management, deck builder, and user management
+- **Slide Library** with 10 component types (Hero, Value Chain, Products Grid, Partnership Overview, Partnership Configurator, Why We Exist, Text Block, Stats Block, Leadership Team, Image Block)
+- **Deck Builder** with drag-and-drop composition and live preview
+- **Deck Viewer** — full-screen scrollable presentations with dark/light theme toggle
+- **Role-based access** (Admin / Viewer)
+- **Brand Guide** page with colour swatches, typography scale, and component patterns
+
+## Project Structure
+
+```
+src/
+  app/           # Next.js App Router pages
+  components/
+    admin/       # Dashboard components (Sidebar, Topbar, forms)
+    slides/      # All slide type components
+    deck-viewer/ # Presentation viewer components
+    ui/          # Shared UI primitives (Button, Card, Input, etc.)
+  icons/         # Isometric SVG icon components
+  lib/           # Brand system, Prisma client, auth config, slide registry
+  types/         # Shared TypeScript types
+prisma/          # Schema and seed script
 ```
