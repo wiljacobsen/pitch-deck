@@ -47,6 +47,7 @@ interface DeckBuilderProps {
   initialData?: {
     id: string
     title: string
+    slug: string
     clientName: string | null
     description: string | null
     isPublished: boolean
@@ -186,9 +187,7 @@ export default function DeckBuilder({ mode, allSlides, allViewers, initialData }
     }
   }
 
-  const deckSlug = initialData
-    ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-    : ''
+  const deckSlug = initialData?.slug || ''
 
   return (
     <div className="space-y-6">

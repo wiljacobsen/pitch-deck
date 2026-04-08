@@ -22,6 +22,7 @@ export default async function EditDeckPage({ params }: { params: Promise<{ id: s
         initialData={{
           id: deck.id,
           title: deck.title,
+          slug: deck.slug,
           clientName: deck.clientName,
           description: deck.description,
           isPublished: deck.isPublished,
