@@ -3,7 +3,20 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export default async function middleware(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  // NextAuth v5 uses 'authjs.session-token' cookie name
+  // On HTTPS (production), it's prefixed with '__Secure-'
+  const isSecure = req.nextUrl.protocol === 'https:'
+  const cookieName = isSecure
+    ? '__Secure-authjs.session-token'
+    : 'authjs.session-token'
+
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+    cookieName,
+    salt: cookieName,
+  })
+
   const { pathname } = req.nextUrl
   const isLoggedIn = !!token
   const role = token?.role as string | undefined
