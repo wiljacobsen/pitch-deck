@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Value Chain — Scrolling Grid Animation Preview</title>
+<style>
+  :root {
+    --navy: #0a1628;
+    --gray-50: #f9fafb;
+    --accent: #3b82f6;
+    --accent-light: #60a5fa;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  body { background: #000; }
+
+  .stage {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    transition: background-color 500ms ease, color 500ms ease;
+  }
+  .stage.dark { background: var(--navy); color: #fff; }
+  .stage.light { background: var(--gray-50); color: #111827; }
+
+  .toolbar {
+    position: absolute; top: 12px; left: 12px; z-index: 30;
+    display: flex; gap: 8px; align-items: center;
+    font-size: 12px;
+  }
+  .btn {
+    appearance: none; border: 1px solid currentColor; background: transparent; color: inherit;
+    padding: 6px 10px; border-radius: 999px; cursor: pointer; font: inherit; opacity: 0.7;
+  }
+  .btn:hover { opacity: 1; }
+
+  .titles { position: absolute; top: 4%; left: 0; z-index: 10; width: 55%; padding: 0 32px; }
+  .titles h2 { font-size: clamp(20px, 2vw, 30px); font-weight: 700; margin: 0 0 8px 0; line-height: 1.2; }
+  .stage.dark .titles h2 { color: #fff; }
+  .stage.light .titles h2 { color: #111827; }
+  .titles p { font-size: clamp(13px, 1.05vw, 16px); line-height: 1.55; margin: 0; }
+  .stage.dark .titles p { color: rgba(255,255,255,0.7); }
+  .stage.light .titles p { color: #4b5563; }
+  .title-block { position: absolute; inset: 0; transition: opacity 200ms linear; }
+  .accent { color: var(--accent-light); }
+
+  .legend { display: flex; gap: 16px; margin-top: 12px; }
+  .legend-chip {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  }
+  .legend-chip .swatch { width: 12px; height: 12px; border-radius: 3px; }
+  .legend-chip.symphony { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: var(--accent-light); }
+  .legend-chip.symphony .swatch { background: var(--accent); }
+  .legend-chip.client { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); }
+  .legend-chip.client .swatch { background: #22c55e; }
+  .stage.dark .legend-chip.client { color: #4ade80; }
+  .stage.light .legend-chip.client { color: #16a34a; }
+
+  .canvas {
+    position: absolute;
+    top: 28%; left: 1%; right: 1%; bottom: 3%;
+  }
+  .canvas-inner { position: relative; width: 100%; height: 100%; }
+
+  .arrows-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+
+  .node {
+    position: absolute;
+    transform: translate(-50%, -38px);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    pointer-events: none;
+    will-change: left, top, opacity, transform;
+  }
+  .node-box {
+    width: 76px; height: 76px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid;
+    transition: background-color 700ms ease, border-color 700ms ease, box-shadow 700ms ease, color 700ms ease;
+  }
+  .node-box svg { width: 44px; height: 44px; transition: color 700ms ease; }
+  .node-label {
+    font-size: 12px; font-weight: 500; white-space: nowrap; text-align: center;
+    transition: color 700ms ease;
+  }
+
+  .annotation { position: absolute; pointer-events: none; display: flex; flex-direction: column; line-height: 1.1; }
+  .annotation .big { font-size: 18px; font-weight: 700; }
+  .annotation .small { font-size: 12px; }
+  .annotation.coal .big { color: #f87171; }
+  .annotation.solar .big { color: #fbbf24; }
+  .annotation.wind .big { color: #38bdf8; }
+  .annotation.battery .big { color: #34d399; }
+  .stage.dark .annotation .small { color: rgba(255,255,255,0.5); }
+  .stage.light .annotation .small { color: #6b7280; }
+
+  .dots {
+    position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+    z-index: 20; display: flex; flex-direction: column; gap: 8px;
+  }
+  .dot {
+    width: 10px; height: 10px; border-radius: 999px; border: 0; cursor: pointer; padding: 0;
+    transition: all 300ms ease;
+  }
+  .stage.dark .dot { background: rgba(255,255,255,0.2); }
+  .stage.light .dot { background: #d1d5db; }
+  .dot.active { background: var(--accent); transform: scale(1.25); }
+
+  .hint {
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; opacity: 0.5;
+    z-index: 20;
+  }
+</style>
+</head>
+<body>
+<div class="stage dark" id="stage">
+
+  <div class="toolbar">
+    <button class="btn" id="theme-btn">Toggle theme</button>
+    <span id="step-label">Step 1 / 5</span>
+  </div>
+
+  <!-- Titles -->
+  <div class="title-block titles" data-title="A">
+    <h2>The Traditional Grid</h2>
+    <p>Power has historically flowed one way — from large centralised generators through transmission and distribution networks to consumers. Coal and gas plants dominated Australian generation for over a century. The grid was designed around a small number of large, predictable power stations.</p>
+  </div>
+  <div class="title-block titles" data-title="B" style="opacity:0">
+    <h2>Australia's Energy Transformation</h2>
+    <p>Australia's ageing coal fleet is rapidly retiring — over 60% of capacity scheduled to close by 2035. Renewables are the cheapest and fastest replacement: distributed wind, solar, and battery storage. AEMO's Integrated System Plan projects massive new capacity to meet demand.</p>
+  </div>
+  <div class="title-block titles" data-title="C" style="opacity:0">
+    <h2>The Transmission Bottleneck</h2>
+    <p>Every new generator and large load requires dedicated HV connection infrastructure — substations, switchyards, and protection systems. Regulated network operators are stretched — the pipeline of work far exceeds their delivery capacity. Contestable connection infrastructure enables specialist third parties to deliver and own this critical infrastructure, creating a multi-billion dollar market.</p>
+  </div>
+  <div class="title-block titles" data-title="D" style="opacity:0">
+    <h2>The AI Race</h2>
+    <p>Global AI investment is driving unprecedented demand for data centre capacity in Australia. Each hyperscale facility requires 100–500 MW of dedicated grid connection — equivalent to a large wind farm. Australia's pipeline exceeds 10 GW of new load, creating a second wave of connection infrastructure demand alongside the energy transition.</p>
+  </div>
+  <div class="title-block titles" data-title="E" style="opacity:0">
+    <h2><span class="accent">Symphony's</span> Role in the Energy Value Chain</h2>
+    <p>Symphony designs, builds, owns, and operates the connection infrastructure linking generators and loads to the grid. We provide certainty of delivery, de-risking projects for developers, investors, and network operators. Our integrated model spans the full lifecycle — feasibility through construction to 30-year asset management.</p>
+    <div class="legend">
+      <div class="legend-chip symphony"><div class="swatch"></div>Symphony Connection Infrastructure</div>
+      <div class="legend-chip client"><div class="swatch"></div>Client Assets</div>
+    </div>
+  </div>
+
+  <!-- Infographic canvas -->
+  <div class="canvas">
+    <div class="canvas-inner" id="canvas-inner">
+      <svg class="arrows-svg" id="arrows"></svg>
+      <!-- Nodes injected by JS -->
+    </div>
+  </div>
+
+  <!-- Step indicators -->
+  <div class="dots" id="dots"></div>
+
+  <div class="hint">Scroll · Arrow keys · Click dots to navigate</div>
+</div>
+
+<script>
+//  ────────────────────────────────────────────────────────────
+//  Icons (extracted from src/icons/*)
+//  ────────────────────────────────────────────────────────────
+const ICONS = {
+  CoalPlant: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 16 L34 10 L42 14 L28 20 Z" fill="currentColor" opacity="0.06"/><path d="M20 16 L34 10 L42 14 L28 20 Z"/>
+    <path d="M42 14 L42 34 L28 40 L28 20 Z" fill="currentColor" opacity="0.10"/><path d="M42 14 L42 34 L28 40 L28 20 Z"/>
+    <path d="M20 16 L20 36 L28 40 L28 20 Z" fill="currentColor" opacity="0.04"/><path d="M20 16 L20 36 L28 40 L28 20 Z"/>
+    <line x1="20" y1="24" x2="28" y2="28"/><line x1="20" y1="30" x2="28" y2="34"/>
+    <path d="M10 38 L10 12 L16 12 L16 38"/><path d="M10 12 L12 10 L18 10 L16 12" fill="currentColor" opacity="0.06"/>
+    <path d="M13 10 C11 6, 15 4, 13 1" stroke-width="1" opacity="0.4"/><path d="M15 9 C14 6, 17 4, 15 2" stroke-width="1" opacity="0.25"/>
+    <path d="M4 38 L6 24 C7 20, 11 20, 12 24 L14 38"/><path d="M6 22 C7.5 20, 10.5 20, 12 22" stroke-width="1" opacity="0.4"/>
+    <path d="M2 38 L16 44 L44 38" stroke-width="1" opacity="0.3"/></svg>`,
+
+  SolarPanel: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 12 L24 6 L42 14 L24 20 Z" fill="currentColor" opacity="0.08"/><path d="M6 12 L24 6 L42 14 L24 20 Z"/>
+    <line x1="10" y1="10.5" x2="38" y2="14.5"/><line x1="15" y1="15" x2="33" y2="11"/>
+    <line x1="15" y1="9" x2="15" y2="16"/><line x1="24" y1="6" x2="24" y2="20"/><line x1="33" y1="10" x2="33" y2="17"/>
+    <path d="M6 12 L6 14 L24 22 L24 20" fill="currentColor" opacity="0.10"/>
+    <line x1="6" y1="12" x2="6" y2="14"/><line x1="6" y1="14" x2="24" y2="22"/><line x1="24" y1="20" x2="24" y2="22"/>
+    <line x1="42" y1="14" x2="42" y2="16"/><line x1="42" y1="16" x2="24" y2="22"/>
+    <line x1="14" y1="15" x2="12" y2="38"/><line x1="14" y1="15" x2="20" y2="38"/>
+    <line x1="34" y1="15" x2="28" y2="38"/><line x1="34" y1="15" x2="36" y2="38"/>
+    <line x1="14" y1="30" x2="18" y2="30"/><line x1="30" y1="30" x2="34" y2="30"/>
+    <path d="M8 38 L24 44 L40 38" stroke-width="1" opacity="0.3"/></svg>`,
+
+  WindTurbine: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 22 L20 42 L28 42 L26 22"/><path d="M20 42 L22 44 L30 44 L28 42" fill="currentColor" opacity="0.06"/>
+    <line x1="21" y1="32" x2="27" y2="32" stroke-width="1" opacity="0.3"/>
+    <path d="M20 19 L24 17 L30 19 L26 21 Z" fill="currentColor" opacity="0.06"/>
+    <path d="M20 19 L20 21 L26 23 L26 21 Z" fill="currentColor" opacity="0.08"/>
+    <path d="M30 19 L30 21 L26 23 L26 21 Z" fill="currentColor" opacity="0.12"/>
+    <path d="M20 19 L24 17 L30 19 L26 21 Z"/><path d="M20 19 L20 21 L26 23 L26 21"/><path d="M30 19 L30 21 L26 23"/>
+    <circle cx="24" cy="19" r="1.5" fill="currentColor" opacity="0.3"/>
+    <path d="M24 17 L23 4 L25.5 4 L24.5 17" stroke-width="1.2"/>
+    <path d="M25.5 20 L37 27 L36 24.5 L24.5 19" stroke-width="1.2"/>
+    <path d="M22.5 20 L11 27 L12 24.5 L23.5 19" stroke-width="1.2"/>
+    <path d="M16 42 L24 46 L32 42" stroke-width="1.5" opacity="0.25"/></svg>`,
+
+  Battery: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 12 L30 6 L42 12 L26 18 Z" fill="currentColor" opacity="0.06"/><path d="M14 12 L30 6 L42 12 L26 18 Z"/>
+    <path d="M42 12 L42 30 L26 36 L26 18 Z" fill="currentColor" opacity="0.10"/><path d="M42 12 L42 30 L26 36 L26 18 Z"/>
+    <path d="M14 12 L14 30 L26 36 L26 18 Z" fill="currentColor" opacity="0.04"/><path d="M14 12 L14 30 L26 36 L26 18 Z"/>
+    <line x1="15" y1="17" x2="25" y2="22"/><line x1="15" y1="20" x2="25" y2="25"/>
+    <line x1="15" y1="23" x2="25" y2="28"/><line x1="15" y1="26" x2="25" y2="31"/>
+    <rect x="34" y="14" width="3" height="4" rx="0.5" fill="currentColor" opacity="0.08"/>
+    <line x1="35.5" y1="14" x2="35.5" y2="18"/>
+    <circle cx="39" cy="16" r="1" fill="currentColor" opacity="0.3"/>
+    <line x1="42" y1="20" x2="44" y2="19" stroke-width="1"/><line x1="42" y1="24" x2="44" y2="23" stroke-width="1"/>
+    <path d="M10 30 L26 38 L44 30" stroke-width="1" opacity="0.25"/>
+    <path d="M6 26 L10 24 L14 26 L10 28 Z" fill="currentColor" opacity="0.06"/>
+    <path d="M6 26 L6 30 L10 32 L10 28 Z"/><path d="M14 26 L14 30 L10 32 L10 28 Z" fill="currentColor" opacity="0.08"/></svg>`,
+
+  DataCentre: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 14 L24 8 L42 16 L26 22 Z" fill="currentColor" opacity="0.06"/><path d="M8 14 L24 8 L42 16 L26 22 Z"/>
+    <path d="M42 16 L42 34 L26 40 L26 22 Z" fill="currentColor" opacity="0.10"/><path d="M42 16 L42 34 L26 40 L26 22 Z"/>
+    <path d="M8 14 L8 32 L26 40 L26 22 Z" fill="currentColor" opacity="0.04"/><path d="M8 14 L8 32 L26 40 L26 22 Z"/>
+    <rect x="16" y="11" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.08"/>
+    <rect x="22" y="12" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.08"/>
+    <rect x="30" y="13" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.08"/>
+    <rect x="10" y="24" width="4" height="5" rx="0.5" fill="currentColor" opacity="0.06"/>
+    <line x1="12" y1="24" x2="12" y2="29" stroke-width="0.8" opacity="0.4"/>
+    <line x1="29" y1="26" x2="39" y2="22" stroke-width="0.8" opacity="0.3"/>
+    <line x1="29" y1="30" x2="39" y2="26" stroke-width="0.8" opacity="0.3"/>
+    <line x1="29" y1="34" x2="39" y2="30" stroke-width="0.8" opacity="0.3"/>
+    <circle cx="40" cy="20" r="0.8" fill="currentColor" opacity="0.4"/>
+    <circle cx="40" cy="24" r="0.8" fill="currentColor" opacity="0.4"/>
+    <circle cx="40" cy="28" r="0.8" fill="currentColor" opacity="0.4"/>
+    <path d="M4 32 L26 42 L44 34" stroke-width="1" opacity="0.2"/></svg>`,
+
+  Transformer: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 10 L37 17 L24 24 L11 17 Z" fill="currentColor" opacity="0.06"/><path d="M24 10 L37 17 L24 24 L11 17 Z"/>
+    <path d="M37 17 L37 33 L24 40 L24 24 Z" fill="currentColor" opacity="0.10"/><path d="M37 17 L37 33 L24 40 L24 24 Z"/>
+    <path d="M11 17 L11 33 L24 40 L24 24 Z" fill="currentColor" opacity="0.04"/><path d="M11 17 L11 33 L24 40 L24 24 Z"/>
+    <line x1="19" y1="15" x2="19" y2="8"/><ellipse cx="19" cy="7" rx="1.5" ry="1"/><ellipse cx="19" cy="9.5" rx="2" ry="0.8"/>
+    <line x1="29" y1="15" x2="29" y2="8"/><ellipse cx="29" cy="7" rx="1.5" ry="1"/><ellipse cx="29" cy="9.5" rx="2" ry="0.8"/>
+    <line x1="35" y1="21" x2="35" y2="29"/><line x1="33" y1="22.5" x2="33" y2="30.5"/><line x1="31" y1="24" x2="31" y2="32"/>
+    <path d="M16 25 C13.5 25, 13.5 28, 16 28 C13.5 28, 13.5 31, 16 31"/></svg>`,
+
+  PowerTower: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="17" y1="44" x2="21.5" y2="12"/><line x1="31" y1="44" x2="26.5" y2="12"/>
+    <line x1="18.5" y1="36" x2="29.5" y2="36"/><line x1="19.5" y1="28" x2="28.5" y2="28"/><line x1="20.5" y1="20" x2="27.5" y2="20"/>
+    <line x1="19" y1="36" x2="28" y2="28"/><line x1="29" y1="36" x2="20" y2="28"/>
+    <line x1="20" y1="28" x2="27" y2="20"/><line x1="28" y1="28" x2="21" y2="20"/>
+    <line x1="6" y1="12" x2="42" y2="12"/><line x1="6" y1="12" x2="8" y2="14"/>
+    <line x1="42" y1="12" x2="40" y2="14"/><line x1="8" y1="14" x2="40" y2="14"/>
+    <line x1="10" y1="12" x2="10" y2="6"/><circle cx="10" cy="5.5" r="1.2"/>
+    <line x1="24" y1="12" x2="24" y2="4"/><circle cx="24" cy="3.5" r="1.2"/>
+    <line x1="38" y1="12" x2="38" y2="6"/><circle cx="38" cy="5.5" r="1.2"/>
+    <path d="M2 5.5 Q6 7.5, 10 5.5" stroke-width="1"/><path d="M2 3.5 Q13 6, 24 3.5" stroke-width="1"/>
+    <path d="M46 5.5 Q42 7.5, 38 5.5" stroke-width="1"/>
+    <path d="M14 44 L17 44" stroke-width="2.5" opacity="0.3"/><path d="M31 44 L34 44" stroke-width="2.5" opacity="0.3"/></svg>`,
+
+  PowerPole: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="23.5" y1="6" x2="24.5" y2="44" stroke-width="2.5"/>
+    <line x1="10" y1="10" x2="38" y2="10" stroke-width="2"/>
+    <line x1="14" y1="10" x2="14" y2="6"/><circle cx="14" cy="5.5" r="1.2"/>
+    <line x1="24" y1="10" x2="24" y2="6"/><circle cx="24" cy="5.5" r="1.2"/>
+    <line x1="34" y1="10" x2="34" y2="6"/><circle cx="34" cy="5.5" r="1.2"/>
+    <path d="M4 5.5 Q9 8, 14 5.5" stroke-width="1"/><path d="M14 5.5 Q19 8, 24 5.5" stroke-width="1"/>
+    <path d="M24 5.5 Q29 8, 34 5.5" stroke-width="1"/><path d="M34 5.5 Q39 8, 44 5.5" stroke-width="1"/>
+    <line x1="16" y1="16" x2="32" y2="16" stroke-width="1.5"/>
+    <rect x="28" y="18" width="5" height="8" rx="1.5" stroke-width="1.2" fill="currentColor" fill-opacity="0.06"/>
+    <line x1="30.5" y1="26" x2="30.5" y2="30" stroke-width="1"/>
+    <path d="M20 44 L28 44" stroke-width="1" opacity="0.3"/></svg>`,
+
+  Buildings: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 8 L18 4 L26 8 L16 12 Z" fill="currentColor" opacity="0.06"/><path d="M8 8 L18 4 L26 8 L16 12 Z"/>
+    <path d="M26 8 L26 34 L16 38 L16 12 Z" fill="currentColor" opacity="0.10"/><path d="M26 8 L26 34 L16 38 L16 12 Z"/>
+    <path d="M8 8 L8 34 L16 38 L16 12 Z" fill="currentColor" opacity="0.04"/><path d="M8 8 L8 34 L16 38 L16 12 Z"/>
+    <line x1="19" y1="12" x2="19" y2="34" stroke-width="0.8" opacity="0.3"/>
+    <line x1="22" y1="11" x2="22" y2="33" stroke-width="0.8" opacity="0.3"/>
+    <line x1="26" y1="14" x2="16" y2="18" stroke-width="0.8" opacity="0.3"/>
+    <line x1="26" y1="20" x2="16" y2="24" stroke-width="0.8" opacity="0.3"/>
+    <line x1="26" y1="26" x2="16" y2="30" stroke-width="0.8" opacity="0.3"/>
+    <rect x="18" y="5" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.08"/>
+    <path d="M26 22 L36 18 L44 22 L34 26 Z" fill="currentColor" opacity="0.06"/><path d="M26 22 L36 18 L44 22 L34 26 Z"/>
+    <path d="M44 22 L44 38 L34 42 L34 26 Z" fill="currentColor" opacity="0.10"/><path d="M44 22 L44 38 L34 42 L34 26 Z"/>
+    <path d="M26 22 L26 38 L34 42 L34 26 Z" fill="currentColor" opacity="0.04"/><path d="M26 22 L26 38 L34 42 L34 26 Z"/>
+    <line x1="37" y1="25" x2="37" y2="38" stroke-width="0.8" opacity="0.3"/>
+    <line x1="40" y1="24" x2="40" y2="37" stroke-width="0.8" opacity="0.3"/>
+    <line x1="44" y1="28" x2="34" y2="32" stroke-width="0.8" opacity="0.3"/>
+    <path d="M4 34 L16 40 L34 42 L44 38" stroke-width="1" opacity="0.2"/></svg>`,
+};
+
+//  ────────────────────────────────────────────────────────────
+//  Node positions (mirrors useValueChainAnimation.ts)
+//  ────────────────────────────────────────────────────────────
+const STATE_A = {
+  coal: { x: 10, y: 50 },
+  solar: { x: 10, y: 50 }, wind: { x: 10, y: 50 }, battery: { x: 10, y: 50 },
+  nciSolar: { x: 10, y: 50 }, nciWind: { x: 10, y: 50 }, nciBattery: { x: 10, y: 50 },
+  transmission: { x: 40, y: 50 }, distribution: { x: 65, y: 50 }, load: { x: 90, y: 50 },
+  dataCentre: { x: 80, y: 72 }, nciDataCentre: { x: 62, y: 72 },
+};
+const STATE_B = {
+  coal: { x: 10, y: 18 },
+  solar: { x: 10, y: 38 }, wind: { x: 10, y: 55 }, battery: { x: 10, y: 72 },
+  nciSolar: { x: 26, y: 38 }, nciWind: { x: 26, y: 55 }, nciBattery: { x: 26, y: 72 },
+  transmission: { x: 50, y: 44 }, distribution: { x: 72, y: 44 }, load: { x: 90, y: 44 },
+  dataCentre: { x: 80, y: 72 }, nciDataCentre: { x: 62, y: 72 },
+};
+
+const NODE_LIST = [
+  { id: 'coal', icon: 'CoalPlant', label: 'Generator' },
+  { id: 'solar', icon: 'SolarPanel', label: 'Solar' },
+  { id: 'wind', icon: 'WindTurbine', label: 'Wind' },
+  { id: 'battery', icon: 'Battery', label: 'Battery' },
+  { id: 'nciSolar', icon: 'Transformer', label: 'Connection Infra' },
+  { id: 'nciWind', icon: 'Transformer', label: 'Connection Infra' },
+  { id: 'nciBattery', icon: 'Transformer', label: 'Connection Infra' },
+  { id: 'nciDataCentre', icon: 'Transformer', label: 'Connection Infra' },
+  { id: 'transmission', icon: 'PowerTower', label: 'Transmission' },
+  { id: 'distribution', icon: 'PowerPole', label: 'Distribution' },
+  { id: 'load', icon: 'Buildings', label: 'Load / Consumers' },
+  { id: 'dataCentre', icon: 'DataCentre', label: 'Data Centres' },
+];
+
+//  ────────────────────────────────────────────────────────────
+//  Theme colors per phase
+//  ────────────────────────────────────────────────────────────
+function themeColors(theme, dark) {
+  if (dark) {
+    switch (theme) {
+      case 'neutral': return { bg: '#1e293b', border: 'rgba(148,163,184,0.35)', icon: 'rgba(226,232,240,0.95)', label: 'rgba(148,163,184,0.85)' };
+      case 'solar':   return { bg: '#451a03', border: 'rgba(251,191,36,0.5)',  icon: 'rgba(251,191,36,0.95)', label: 'rgba(251,191,36,0.85)' };
+      case 'wind':    return { bg: '#0c2a4a', border: 'rgba(56,189,248,0.5)',  icon: 'rgba(56,189,248,0.95)', label: 'rgba(56,189,248,0.85)' };
+      case 'battery': return { bg: '#052e16', border: 'rgba(52,211,153,0.5)',  icon: 'rgba(52,211,153,0.95)', label: 'rgba(52,211,153,0.85)' };
+      case 'symphony':return { bg: '#172554', border: 'rgba(59,130,246,0.6)',  icon: 'rgba(96,165,250,1)',    label: 'rgba(96,165,250,0.9)' };
+      case 'client':  return { bg: '#052e16', border: 'rgba(34,197,94,0.5)',   icon: 'rgba(74,222,128,0.95)', label: 'rgba(74,222,128,0.85)' };
+    }
+  } else {
+    switch (theme) {
+      case 'neutral': return { bg: '#f1f5f9', border: 'rgba(100,116,139,0.35)', icon: 'rgba(30,41,59,0.95)', label: 'rgba(51,65,85,0.9)' };
+      case 'solar':   return { bg: '#fffbeb', border: 'rgba(245,158,11,0.45)', icon: 'rgba(180,83,9,1)',    label: 'rgba(146,64,14,1)' };
+      case 'wind':    return { bg: '#f0f9ff', border: 'rgba(14,165,233,0.45)', icon: 'rgba(2,132,199,1)',   label: 'rgba(3,105,161,1)' };
+      case 'battery': return { bg: '#ecfdf5', border: 'rgba(16,185,129,0.45)', icon: 'rgba(4,120,87,1)',    label: 'rgba(6,95,70,1)' };
+      case 'symphony':return { bg: '#dbeafe', border: 'rgba(59,130,246,0.5)',  icon: 'rgba(37,99,235,1)',   label: 'rgba(37,99,235,0.9)' };
+      case 'client':  return { bg: '#dcfce7', border: 'rgba(34,197,94,0.45)',  icon: 'rgba(22,163,74,1)',   label: 'rgba(21,128,61,0.9)' };
+    }
+  }
+}
+
+function nodeTheme(id, step) {
+  if (step === 1) {
+    if (id === 'solar') return 'solar';
+    if (id === 'wind') return 'wind';
+    if (id === 'battery') return 'battery';
+  }
+  if (step === 4) {
+    if (['nciSolar','nciWind','nciBattery','nciDataCentre'].includes(id)) return 'symphony';
+    if (['coal','solar','wind','battery','dataCentre'].includes(id)) return 'client';
+  }
+  return 'neutral';
+}
+
+//  ────────────────────────────────────────────────────────────
+//  Math helpers
+//  ────────────────────────────────────────────────────────────
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+function piecewise(t, stops, values) {
+  if (t <= stops[0]) return values[0];
+  if (t >= stops[stops.length-1]) return values[values.length-1];
+  for (let i = 0; i < stops.length-1; i++) {
+    if (t >= stops[i] && t <= stops[i+1]) {
+      const u = (t - stops[i]) / (stops[i+1] - stops[i]);
+      return lerp(values[i], values[i+1], u);
+    }
+  }
+  return values[values.length-1];
+}
+
+// Cubic-bezier easing solver for animate() — matches [0.4, 0, 0.2, 1]
+function bezierEase(x1, y1, x2, y2) {
+  return function(t) {
+    if (t <= 0) return 0; if (t >= 1) return 1;
+    let s = t;
+    for (let i = 0; i < 8; i++) {
+      const xs = 3*(1-s)*(1-s)*s*x1 + 3*(1-s)*s*s*x2 + s*s*s;
+      const dx = 3*(1-s)*(1-s)*x1 + 6*(1-s)*s*(x2-x1) + 3*s*s*(1-x2);
+      if (Math.abs(dx) < 1e-6) break;
+      s = clamp(s - (xs - t) / dx, 0, 1);
+    }
+    return 3*(1-s)*(1-s)*s*y1 + 3*(1-s)*s*s*y2 + s*s*s;
+  };
+}
+const easeStep = bezierEase(0.4, 0, 0.2, 1);
+
+//  ────────────────────────────────────────────────────────────
+//  Animation derivations (mirrors useValueChainAnimation.ts)
+//  ────────────────────────────────────────────────────────────
+function deriveAnim(progress) {
+  const positions = {};
+  const t = clamp((progress - 0.18) / (0.26 - 0.18), 0, 1);
+  for (const id of Object.keys(STATE_A)) {
+    positions[id] = {
+      x: lerp(STATE_A[id].x, STATE_B[id].x, t),
+      y: lerp(STATE_A[id].y, STATE_B[id].y, t),
+    };
+  }
+  return {
+    positions,
+    titleA: piecewise(progress, [0.16, 0.20], [1, 0]),
+    titleB: piecewise(progress, [0.20, 0.24, 0.36, 0.40], [0, 1, 1, 0]),
+    titleC: piecewise(progress, [0.40, 0.44, 0.56, 0.60], [0, 1, 1, 0]),
+    titleD: piecewise(progress, [0.60, 0.64, 0.76, 0.80], [0, 1, 1, 0]),
+    titleE: piecewise(progress, [0.80, 0.84], [0, 1]),
+    stateAFade: piecewise(progress, [0.14, 0.18], [1, 0]),
+    renewables: piecewise(progress, [0.20, 0.27], [0, 1]),
+    coreChain:  piecewise(progress, [0.26, 0.30], [0, 1]),
+    ispLabels:  piecewise(progress, [0.20, 0.27, 0.40, 0.46], [0, 1, 1, 0]),
+    coalRet:    piecewise(progress, [0.20, 0.27, 0.40, 0.46], [0, 1, 1, 0]),
+    nciOpacity: piecewise(progress, [0.40, 0.46], [0, 1]),
+    nciScale:   piecewise(progress, [0.40, 0.46], [0.7, 1]),
+    connArrows: piecewise(progress, [0.42, 0.48], [0, 1]),
+    dcOpacity:  piecewise(progress, [0.60, 0.66], [0, 1]),
+    dcScale:    piecewise(progress, [0.60, 0.66], [0.7, 1]),
+    dcArrows:   piecewise(progress, [0.62, 0.68], [0, 1]),
+  };
+}
+
+//  ────────────────────────────────────────────────────────────
+//  Arrow / electron path helpers
+//  ────────────────────────────────────────────────────────────
+function arrowPath(x1, y1, x2, y2, routing, midX) {
+  if (routing === 'h-first') return [{x:x1,y:y1},{x:x2,y:y1},{x:x2,y:y2}];
+  if (routing === 'v-first') return [{x:x1,y:y1},{x:x1,y:y2},{x:x2,y:y2}];
+  if (routing === 'hvh' && midX !== undefined) return [{x:x1,y:y1},{x:midX,y:y1},{x:midX,y:y2},{x:x2,y:y2}];
+  return [{x:x1,y:y1},{x:x2,y:y2}];
+}
+
+const ARROW_DEFS = [
+  // State-A horizontal chain (visible only at start)
+  { id:'a0', from:'coal', to:'transmission', op:'stateAFade', primary:true },
+  { id:'a1', from:'transmission', to:'distribution', op:'stateAFade', primary:true },
+  { id:'a2', from:'distribution', to:'load', op:'stateAFade', primary:true },
+  // Core chain (after split)
+  { id:'ct', from:'coal', to:'transmission', op:'coreChain', primary:true, routing:'hvh', midX:38 },
+  { id:'c0', from:'transmission', to:'distribution', op:'coreChain', primary:true },
+  { id:'c1', from:'distribution', to:'load', op:'coreChain', primary:true },
+  // Generator → NCI → Transmission (3 lines)
+  { id:'g0', from:'solar',  to:'nciSolar',   op:'connArrows' },
+  { id:'n0', from:'nciSolar',   to:'transmission', op:'connArrows', routing:'hvh', midX:38 },
+  { id:'g1', from:'wind',   to:'nciWind',    op:'connArrows' },
+  { id:'n1', from:'nciWind',    to:'transmission', op:'connArrows', routing:'hvh', midX:38 },
+  { id:'g2', from:'battery',to:'nciBattery', op:'connArrows' },
+  { id:'n2', from:'nciBattery', to:'transmission', op:'connArrows', routing:'hvh', midX:38 },
+  // Data centre arm
+  { id:'dc0', from:'transmission', to:'nciDataCentre', op:'dcArrows', routing:'hvh', midX:56 },
+  { id:'dc1', from:'nciDataCentre', to:'dataCentre',   op:'dcArrows' },
+];
+
+//  ────────────────────────────────────────────────────────────
+//  DOM build
+//  ────────────────────────────────────────────────────────────
+const stage = document.getElementById('stage');
+const canvasInner = document.getElementById('canvas-inner');
+const arrowsSvg = document.getElementById('arrows');
+const dotsEl = document.getElementById('dots');
+const themeBtn = document.getElementById('theme-btn');
+const stepLabel = document.getElementById('step-label');
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function el(ns, name, attrs) {
+  const e = ns ? document.createElementNS(ns, name) : document.createElement(name);
+  if (attrs) for (const [k,v] of Object.entries(attrs)) e.setAttribute(k, v);
+  return e;
+}
+
+// Build SVG defs (arrow markers)
+const defs = el(SVG_NS, 'defs');
+['primary-d','primary-l','secondary-d','secondary-l'].forEach(name => {
+  const dark = name.endsWith('d');
+  const isPrimary = name.startsWith('primary');
+  const arrowColor = dark ? (isPrimary ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.45)')
+                          : (isPrimary ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.3)');
+  const m = el(SVG_NS,'marker',{id:`ar-${name}`, viewBox:'0 0 10 10', refX:'9', refY:'5', markerWidth:'8', markerHeight:'8', orient:'auto'});
+  const p = el(SVG_NS,'path',{d:'M 0 1.5 L 9 5 L 0 8.5', fill:'none', stroke:arrowColor, 'stroke-width':'1.8'});
+  m.appendChild(p); defs.appendChild(m);
+});
+arrowsSvg.appendChild(defs);
+
+// Containers within SVG
+const arrowsLayer = el(SVG_NS, 'g'); arrowsSvg.appendChild(arrowsLayer);
+const electronsLayer = el(SVG_NS, 'g'); arrowsSvg.appendChild(electronsLayer);
+
+// Build arrow elements (one <g> per arrow, with up to 4 lines + circles)
+const arrowEls = ARROW_DEFS.map(def => {
+  const g = el(SVG_NS,'g');
+  const lines = [];
+  const dots = [];
+  for (let i = 0; i < 4; i++) {
+    const ln = el(SVG_NS,'line',{stroke:'currentColor','stroke-width':'3'});
+    g.appendChild(ln); lines.push(ln);
+  }
+  for (let i = 0; i < 5; i++) {
+    const c = el(SVG_NS,'circle',{r:'3', fill:'currentColor'});
+    g.appendChild(c); dots.push(c);
+  }
+  arrowsLayer.appendChild(g);
+  return { def, g, lines, dots };
+});
+
+// Electron dots — for each arrow, 3 main + 3 trail
+const electronGroups = ARROW_DEFS.map((def, idx) => {
+  const filterId = `edot-${idx}`;
+  const f = el(SVG_NS,'filter',{id:filterId});
+  const blur = el(SVG_NS,'feGaussianBlur',{stdDeviation:'3', result:'c'});
+  const merge = el(SVG_NS,'feMerge');
+  merge.appendChild(el(SVG_NS,'feMergeNode',{in:'c'}));
+  merge.appendChild(el(SVG_NS,'feMergeNode',{in:'SourceGraphic'}));
+  f.appendChild(blur); f.appendChild(merge);
+  defs.appendChild(f);
+
+  const g = el(SVG_NS,'g');
+  const circles = [];
+  for (let i = 0; i < 3; i++) {
+    const main = el(SVG_NS,'circle',{r:'3.5', fill:'#3B82F6', filter:`url(#${filterId})`, opacity:'0'});
+    const trail = el(SVG_NS,'circle',{r:'3', fill:'#3B82F6', filter:`url(#${filterId})`, opacity:'0'});
+    g.appendChild(main); g.appendChild(trail);
+    circles.push(main, trail);
+  }
+  electronsLayer.appendChild(g);
+  return { def, idx, circles };
+});
+
+// Build node DOM
+const nodeEls = {};
+for (const n of NODE_LIST) {
+  const wrap = el(null,'div'); wrap.className = 'node';
+  const box = el(null,'div'); box.className = 'node-box';
+  box.innerHTML = ICONS[n.icon];
+  const lbl = el(null,'div'); lbl.className = 'node-label';
+  lbl.textContent = n.label;
+  wrap.appendChild(box); wrap.appendChild(lbl);
+  canvasInner.appendChild(wrap);
+  nodeEls[n.id] = { wrap, box, label: lbl };
+}
+
+// Annotations: coal retirement, ISP labels
+const annCoal = el(null,'div'); annCoal.className = 'annotation coal';
+annCoal.innerHTML = '<span class="big">60% to close by 2030</span><span class="small">AEMO ISP, Step Change</span>';
+canvasInner.appendChild(annCoal);
+
+const ispData = [
+  {node:'solar',   gw:'+68 GW', label:'Solar by 2050', cls:'solar'},
+  {node:'wind',    gw:'+32 GW', label:'Wind by 2050',  cls:'wind'},
+  {node:'battery', gw:'+19 GW', label:'Storage by 2050', cls:'battery'},
+];
+const ispEls = ispData.map(d => {
+  const a = el(null,'div'); a.className = `annotation ${d.cls}`;
+  a.innerHTML = `<span class="big">${d.gw}</span><span class="small">${d.label}</span>`;
+  canvasInner.appendChild(a);
+  return { ...d, el: a };
+});
+
+// Step indicators
+const TOTAL_STEPS = 5;
+const STEP_POSITIONS = [0.0, 0.2, 0.4, 0.6, 0.9];
+let currentStep = 0;
+let progress = 0; // current animated scrollYProgress
+let isAnimating = false;
+let dark = true;
+
+const dotEls = [];
+for (let i = 0; i < TOTAL_STEPS; i++) {
+  const b = el(null,'button'); b.className = 'dot' + (i === 0 ? ' active' : '');
+  b.setAttribute('aria-label', `Step 1.${i+1}`);
+  b.addEventListener('click', () => goToStep(i));
+  dotsEl.appendChild(b); dotEls.push(b);
+}
+
+//  ────────────────────────────────────────────────────────────
+//  Render
+//  ────────────────────────────────────────────────────────────
+const titleBlocks = {
+  A: document.querySelector('[data-title="A"]'),
+  B: document.querySelector('[data-title="B"]'),
+  C: document.querySelector('[data-title="C"]'),
+  D: document.querySelector('[data-title="D"]'),
+  E: document.querySelector('[data-title="E"]'),
+};
+
+function setOpacity(elm, v) { elm.style.opacity = String(clamp(v, 0, 1)); }
+function setVisibility(elm, v) { elm.style.display = v < 0.001 ? 'none' : ''; }
+
+function render(progress, now) {
+  const a = deriveAnim(progress);
+
+  // Titles
+  setOpacity(titleBlocks.A, a.titleA);
+  setOpacity(titleBlocks.B, a.titleB);
+  setOpacity(titleBlocks.C, a.titleC);
+  setOpacity(titleBlocks.D, a.titleD);
+  setOpacity(titleBlocks.E, a.titleE);
+
+  // Nodes
+  for (const n of NODE_LIST) {
+    const pos = a.positions[n.id];
+    const { wrap, box, label } = nodeEls[n.id];
+    let opacity = 1, scale = 1;
+    if (['solar','wind','battery'].includes(n.id)) opacity = a.renewables;
+    if (['nciSolar','nciWind','nciBattery'].includes(n.id)) { opacity = a.nciOpacity; scale = a.nciScale; }
+    if (['nciDataCentre','dataCentre'].includes(n.id)) { opacity = a.dcOpacity; scale = a.dcScale; }
+
+    wrap.style.left = pos.x + '%';
+    wrap.style.top = pos.y + '%';
+    wrap.style.opacity = String(opacity);
+    wrap.style.transform = `translate(-50%, -38px) scale(${scale})`;
+
+    const themeName = nodeTheme(n.id, currentStep);
+    const c = themeColors(themeName, dark);
+    box.style.backgroundColor = c.bg;
+    box.style.borderColor = c.border;
+    box.style.boxShadow = dark
+      ? `0 0 0 1px ${c.border}, 0 2px 8px rgba(0,0,0,0.3)`
+      : `0 0 0 1px ${c.border}, 0 1px 3px rgba(0,0,0,0.08)`;
+    box.style.color = c.icon;
+    label.style.color = c.label;
+  }
+
+  // Annotations
+  const coalPos = a.positions.coal;
+  annCoal.style.left = `calc(${coalPos.x}% + 48px)`;
+  annCoal.style.top  = `calc(${coalPos.y}% - 16px)`;
+  annCoal.style.opacity = String(a.coalRet);
+
+  for (const isp of ispEls) {
+    const p = a.positions[isp.node];
+    isp.el.style.left = `calc(${p.x}% + 48px)`;
+    isp.el.style.top  = `calc(${p.y}% - 20px)`;
+    isp.el.style.opacity = String(a.ispLabels);
+  }
+
+  // Arrows
+  const lineColorD = (primary) => primary ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.25)';
+  const lineColorL = (primary) => primary ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.18)';
+  const dotColor = dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.10)';
+
+  const wRect = arrowsSvg.getBoundingClientRect();
+  const W = wRect.width, H = wRect.height;
+
+  for (const ae of arrowEls) {
+    const def = ae.def;
+    const opacity = a[def.op];
+    ae.g.style.opacity = String(opacity);
+    if (opacity < 0.005) continue;
+
+    const p1 = a.positions[def.from];
+    const p2 = a.positions[def.to];
+    const pts = arrowPath(p1.x, p1.y, p2.x, p2.y, def.routing || 'straight', def.midX);
+    const primary = !!def.primary;
+    const stroke = dark ? lineColorD(primary) : lineColorL(primary);
+    const marker = `url(#ar-${primary ? 'primary' : 'secondary'}-${dark ? 'd' : 'l'})`;
+    const sw = primary ? 3 : 2.5;
+
+    // segment lines: pts.length - 1
+    for (let i = 0; i < ae.lines.length; i++) {
+      const ln = ae.lines[i];
+      if (i < pts.length - 1) {
+        ln.setAttribute('x1', pts[i].x + '%');
+        ln.setAttribute('y1', pts[i].y + '%');
+        ln.setAttribute('x2', pts[i+1].x + '%');
+        ln.setAttribute('y2', pts[i+1].y + '%');
+        ln.setAttribute('stroke', stroke);
+        ln.setAttribute('stroke-width', String(sw));
+        ln.setAttribute('marker-end', i === pts.length - 2 ? marker : '');
+        ln.style.display = '';
+      } else {
+        ln.style.display = 'none';
+      }
+    }
+    // dots: at each junction (start, mids, end)
+    for (let i = 0; i < ae.dots.length; i++) {
+      const d = ae.dots[i];
+      if (i < pts.length) {
+        d.setAttribute('cx', pts[i].x + '%');
+        d.setAttribute('cy', pts[i].y + '%');
+        d.setAttribute('r', (i === 0 || i === pts.length - 1) ? '3' : '2');
+        d.setAttribute('fill', dotColor);
+        d.style.display = '';
+      } else {
+        d.style.display = 'none';
+      }
+    }
+  }
+
+  // Electron dots animation
+  const elapsed = (now || performance.now()) / 1000;
+  const COUNT = 3, SPACING = 1, DUR = 3;
+  for (const eg of electronGroups) {
+    const def = eg.def;
+    const opacity = a[def.op];
+    if (opacity < 0.01) {
+      for (const c of eg.circles) c.setAttribute('opacity', '0');
+      continue;
+    }
+    const p1 = a.positions[def.from];
+    const p2 = a.positions[def.to];
+    const pts = arrowPath(p1.x, p1.y, p2.x, p2.y, def.routing || 'straight', def.midX);
+    // Convert pts (% relative) to pixel space using container dimensions for length math
+    const ptsPx = pts.map(p => ({ x: p.x * W / 100, y: p.y * H / 100 }));
+    const segLens = [];
+    let total = 0;
+    for (let i = 1; i < ptsPx.length; i++) {
+      const dx = ptsPx[i].x - ptsPx[i-1].x;
+      const dy = ptsPx[i].y - ptsPx[i-1].y;
+      const L = Math.hypot(dx, dy);
+      segLens.push(L); total += L;
+    }
+    if (total < 0.5) {
+      for (const c of eg.circles) c.setAttribute('opacity', '0');
+      continue;
+    }
+    // delay per arrow index to stagger (mirrors React `delay` arg variations)
+    const baseDelay = (eg.idx * 0.13) % 1.0;
+    for (let d = 0; d < COUNT * 2; d++) {
+      const isTrail = d % 2 === 1;
+      const dotDelay = baseDelay + Math.floor(d / 2) * SPACING + (isTrail ? 0.15 : 0);
+      const raw = ((elapsed - dotDelay) % DUR + DUR) % DUR;
+      const t = raw / DUR;
+      const dist = t * total;
+      let acc = 0, px = ptsPx[0].x, py = ptsPx[0].y;
+      for (let s = 0; s < segLens.length; s++) {
+        if (acc + segLens[s] >= dist) {
+          const segT = segLens[s] > 0 ? (dist - acc) / segLens[s] : 0;
+          px = ptsPx[s].x + (ptsPx[s+1].x - ptsPx[s].x) * segT;
+          py = ptsPx[s].y + (ptsPx[s+1].y - ptsPx[s].y) * segT;
+          break;
+        }
+        acc += segLens[s];
+        if (s === segLens.length - 1) { px = ptsPx[ptsPx.length-1].x; py = ptsPx[ptsPx.length-1].y; }
+      }
+      const c = eg.circles[d];
+      // back to percentages
+      c.setAttribute('cx', (px / W * 100) + '%');
+      c.setAttribute('cy', (py / H * 100) + '%');
+      const fade = t < 0.08 ? t / 0.08 : t > 0.92 ? (1 - t) / 0.08 : 1;
+      c.setAttribute('opacity', String(fade * opacity * (isTrail ? 0.35 : 0.9)));
+    }
+  }
+
+  // Step label
+  stepLabel.textContent = `Step ${currentStep + 1} / ${TOTAL_STEPS}`;
+  // Dots
+  for (let i = 0; i < dotEls.length; i++) dotEls[i].classList.toggle('active', i === currentStep);
+}
+
+//  ────────────────────────────────────────────────────────────
+//  Animation: goToStep
+//  ────────────────────────────────────────────────────────────
+function animateTo(target, duration) {
+  const start = progress;
+  const startTime = performance.now();
+  isAnimating = true;
+  function frame(now) {
+    const t = clamp((now - startTime) / duration, 0, 1);
+    const eased = easeStep(t);
+    progress = lerp(start, target, eased);
+    render(progress, now);
+    if (t < 1) requestAnimationFrame(frame);
+    else { isAnimating = false; }
+  }
+  requestAnimationFrame(frame);
+}
+
+function goToStep(step) {
+  const clamped = clamp(step, 0, TOTAL_STEPS - 1);
+  if (clamped === currentStep && isAnimating) return;
+  currentStep = clamped;
+  animateTo(STEP_POSITIONS[clamped], 800);
+}
+
+// Continuous render loop for electron dots even when idle
+let lastRender = 0;
+function tick(now) {
+  if (!isAnimating) render(progress, now);
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+//  ────────────────────────────────────────────────────────────
+//  Input
+//  ────────────────────────────────────────────────────────────
+stage.addEventListener('wheel', (e) => {
+  if (isAnimating) { e.preventDefault(); return; }
+  const dir = e.deltaY > 0 ? 1 : -1;
+  const next = currentStep + dir;
+  if (next < 0 || next >= TOTAL_STEPS) return;
+  e.preventDefault();
+  goToStep(next);
+}, { passive: false });
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+    if (currentStep < TOTAL_STEPS - 1) { e.preventDefault(); goToStep(currentStep + 1); }
+  } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+    if (currentStep > 0) { e.preventDefault(); goToStep(currentStep - 1); }
+  } else if (e.key === 'Home') { goToStep(0); }
+  else if (e.key === 'End') { goToStep(TOTAL_STEPS - 1); }
+});
+
+themeBtn.addEventListener('click', () => {
+  dark = !dark;
+  stage.classList.toggle('dark', dark);
+  stage.classList.toggle('light', !dark);
+});
+
+// Initial paint
+render(0, performance.now());
+</script>
+</body>
+</html>
